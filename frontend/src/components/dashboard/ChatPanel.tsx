@@ -4,11 +4,11 @@ interface ChatMessage {
 }
 
 const agentColors: Record<string, string> = {
-  "Trend Analyst": "bg-[#EEF2FF] text-[#4F46E5]",
-  "Risk Assessor": "bg-[#FFF7ED] text-[#D97706]",
-  "Brand Strategist": "bg-[#FEF2F2] text-[#DC2626]",
-  "Data Scientist": "bg-[#ECFDF5] text-[#0F766E]",
-  "CMO Advisor": "bg-[#E6F0FF] text-[#002147]",
+  "Trend Analyst": "bg-[#EEF2FF] text-[#4F46E5] dark:bg-[rgba(79,70,229,0.09)] dark:text-[#A5B4FC] border border-transparent dark:border-[rgba(79,70,229,0.22)]",
+  "Risk Assessor": "bg-[#FFF7ED] text-[#D97706] dark:bg-[rgba(245,158,11,0.09)] dark:text-[#FCD34D] border border-transparent dark:border-[rgba(245,158,11,0.22)]",
+  "Brand Strategist": "bg-[#FEF2F2] text-[#DC2626] dark:bg-[rgba(220,38,38,0.09)] dark:text-[#FCA5A5] border border-transparent dark:border-[rgba(220,38,38,0.22)]",
+  "Data Scientist": "bg-[#F0FDF4] text-[#16A34A] dark:bg-[rgba(22,163,74,0.09)] dark:text-[#86EFAC] border border-transparent dark:border-[rgba(22,163,74,0.22)]",
+  "CMO Advisor": "bg-[#E6F0FF] text-[#002147] dark:bg-[rgba(37,99,235,0.09)] dark:text-[#93C5FD] border border-transparent dark:border-[rgba(37,99,235,0.22)]",
 };
 
 const messages: ChatMessage[] = [
@@ -62,8 +62,8 @@ const ChatPanel = () => {
           key={i}
           className="py-2.5 px-1 border-b border-border/50 last:border-b-0"
         >
-          <div className="flex items-start gap-2">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
+          <div className="flex items-start gap-5">
+            <span className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
               {msg.agent}
             </span>
             <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">
