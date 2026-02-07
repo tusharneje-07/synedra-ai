@@ -74,21 +74,23 @@ const ChatPanel = () => {
           className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
         >
           <div className={`${msg.isUser ? 'max-w-[70%]' : 'max-w-[70%]'}`}>
-            <p className="text-sm leading-loose">
-              {msg.isUser ? (
-                <span className="inline-block bg-[#DCF8C6] dark:bg-[#056162] px-4 py-2 rounded-lg">
-                  <span className="font-semibold text-[#075E54] dark:text-[#E9EDEF]">You: </span>
-                  <span className="text-[#303030] dark:text-[#E9EDEF]">{msg.message}</span>
-                </span>
-              ) : (
-                <>
-                  <span className={`font-semibold px-3 py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
+            {msg.isUser ? (
+              <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 px-4 py-2.5 rounded-lg">
+                <p className="text-sm leading-relaxed">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">You: </span>
+                  <span className="text-slate-700 dark:text-slate-300">{msg.message}</span>
+                </p>
+              </div>
+            ) : (
+              <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200/60 dark:border-slate-700/40 px-4 py-2.5 rounded-lg">
+                <p className="text-sm leading-relaxed">
+                  <span className={`font-semibold px-3 text-[12px] py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
                     {msg.agent}
                   </span>
                   <span className="text-muted-foreground"> {msg.message}</span>
-                </>
-              )}
-            </p>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       ))}
