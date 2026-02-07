@@ -1,6 +1,7 @@
 interface ChatMessage {
   agent: string;
   message: string;
+  isUser?: boolean;
 }
 
 const agentColors: Record<string, string> = {
@@ -17,12 +18,22 @@ const messages: ChatMessage[] = [
     message: "Trend data indicates a 23% surge in AI governance discussions across social platforms this quarter.",
   },
   {
+    agent: "User",
+    message: "Can you analyze the competitive landscape?",
+    isUser: true,
+  },
+  {
     agent: "Risk Assessor",
     message: "Risk flag: regulatory compliance deadline approaching. Recommend reviewing content for GDPR alignment.",
   },
   {
     agent: "Brand Strategist",
     message: "Brand voice consistency check passed. Tone aligns with our established communication framework.",
+  },
+  {
+    agent: "User",
+    message: "What about the engagement metrics?",
+    isUser: true,
   },
   {
     agent: "Data Scientist",
@@ -56,18 +67,27 @@ const messages: ChatMessage[] = [
 
 const ChatPanel = () => {
   return (
-    <div className="flex-1 overflow-y-auto pr-1 space-y-0.5">
+    <div className="flex-1 overflow-y-auto pr-1 space-y-2">
       {messages.map((msg, i) => (
         <div
           key={i}
-          className="py-2.5 px-1 border-b border-border/50 last:border-b-0"
+          className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
         >
-          <div className="flex items-start gap-5">
-            <span className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
-              {msg.agent}
-            </span>
-            <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">
-              {msg.message}
+          <div className={`${msg.isUser ? 'max-w-[70%]' : 'max-w-[70%]'}`}>
+            <p className="text-sm leading-loose">
+              {msg.isUser ? (
+                <span className="inline-block bg-[#DCF8C6] dark:bg-[#056162] px-4 py-2 rounded-lg">
+                  <span className="font-semibold text-[#075E54] dark:text-[#E9EDEF]">You: </span>
+                  <span className="text-[#303030] dark:text-[#E9EDEF]">{msg.message}</span>
+                </span>
+              ) : (
+                <>
+                  <span className={`font-semibold px-3 py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
+                    {msg.agent}
+                  </span>
+                  <span className="text-muted-foreground"> {msg.message}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
