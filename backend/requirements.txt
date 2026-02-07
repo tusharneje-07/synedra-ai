@@ -1,0 +1,28 @@
+# FastAPI Backend Requirements
+# =========================
+
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# Database
+sqlalchemy==2.0.36
+aiosqlite==0.20.0
+greenlet==3.1.1
+
+# WebSocket & SSE
+python-socketio==5.12.1
+sse-starlette==2.2.1
+
+# CORS & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+
+# Validation
+pydantic==2.10.6
+pydantic-settings==2.7.1
+
+# Utils
+python-dateutil==2.9.0.post0

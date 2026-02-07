@@ -1,0 +1,11 @@
+nohup: ignoring input
+INFO:     Started server process [85972]
+INFO:     Waiting for application startup.
+2026-02-07 16:54:03,152 - main - INFO - 🚀 Starting AI Council Backend...
+2026-02-07 16:54:03,156 - database.base - INFO - ✓ Database tables created successfully
+2026-02-07 16:54:03,156 - main - INFO - ✓ Database initialized
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:59988 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37966 - "GET /api/chat/agents/mentions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47496 - "GET /api/agents/status HTTP/1.1" 200 OK
