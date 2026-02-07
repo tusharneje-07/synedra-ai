@@ -1,0 +1,33 @@
+{
+  "id": "nike-ijnrd-2023-04",
+  "slug": "ijnrd2304330-nike-marketing-innovation-design",
+  "source": "IJNRD",
+  "url": "https://ijnrd.org/papers/IJNRD2304330.pdf",
+  "title": "Study on Nike Marketing, Innovation and Design",
+  "author": null,
+  "published_date": "2023-04",
+  "scraped_date": "2026-02-07",
+  "license_note": "Academic article PDF from IJNRD. Stored here for dataset construction and reference. Please consult the original for citation and reproduction rights.",
+  "text_excerpt": "Extracted text from PDF using pdftotext; includes history, Air Jordan case, segmentation, pricing, promotion, and suggested strategies for Nike.",
+  "content_paragraphs": [
+    "Abstract: In-depth analysis of Nike's rise, distinctive marketing approach and culture of innovation and creativity. Overview of brand and study of success factors.",
+    "History: Founded as Blue Ribbon Sports in 1964 by Phil Knight and Bill Bowerman; rebranded as Nike in 1971; early marketing at the 1972 U.S. Track and Field Trials; growth through athlete endorsements.",
+    "Air Jordan case: Michael Jordan endorsement in the mid-1980s created the Air Jordan brand, shifting sneaker culture and enabling premium pricing and high resale values; Jordan brand drove product innovation (air cushioning) and cultural cachet.",
+    "Marketing strategies enumerated: Market segmentation (athletes, runners, enthusiasts), Pricing strategies (premium pricing, vertical integration), Promotional and communication strategies (celebrity endorsements, mass media, selective-demand), and suggested actions like expanding product lines, aggressive marketing, corporate social responsibility, and diversification into global markets.",
+    "Challenges noted: intense competition, export/legal constraints, supply-chain risks, and reputational sensitivity to controversies. Solutions discussed include advertising, new media adoption, emotional branding, segmentation, storytelling, and loyalty investments.",
+    "Recommendations: Increase social responsibility to improve corporate image; diversify market outreach; explore new distribution channels in global markets; maintain innovation and athlete-focused product development."
+  ],
+  "sections": [
+    {"heading":"Abstract","text":"High-level overview of the paper's intent and scope."},
+    {"heading":"History of Nike","text":"Founding, rebranding, early growth, and key milestones."},
+    {"heading":"Air Jordan","text":"Case study of endorsement-driven growth and premiumization."},
+    {"heading":"Marketing Strategies","text":"Segmentation, pricing, promotion, and suggested strategic actions."}
+  ],
+  "key_takeaways": [
+    "Endorsements (Air Jordan) enabled premium positioning and cultural influence.",
+    "Nike's marketing emphasizes athlete-focused segmentation and aspirational storytelling.",
+    "Pricing strategies include premium skimming and vertical integration to control channel costs.",
+    "Scholarly recommendations stress CSR, diversification, and distribution expansion."
+  ],
+  "source_capture_notes": "Full PDF saved as mentor_data/nike/IJNRD2304330.pdf and text extracted to mentor_data/nike/IJNRD2304330.txt. This JSON summarizes the extracted content for the agent's dataset."
+}

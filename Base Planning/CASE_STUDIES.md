@@ -1,9 +1,7 @@
 # Nike
 
 https://marcom.com/changing-the-game-a-nike-marketing-case-study/
-
 https://www.sprintzeal.com/blog/nike-marketing-strategy
-
 https://ijnrd.org/papers/IJNRD2304330.pdf
 
 

@@ -1,0 +1,31 @@
+{
+  "id": "apple-simplilearn-2026-02-06",
+  "slug": "simplilearn-apple-marketing-strategy",
+  "source": "Simplilearn",
+  "url": "https://www.simplilearn.com/tutorials/marketing-case-studies-tutorial/apple-marketing-strategy",
+  "title": "A Case Study on Apple Marketing Strategy",
+  "author": "Nikita Duggal",
+  "published_date": "2026-02-06",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Simplilearn. Stored for dataset construction and internal reference; consult source for reuse rights.",
+  "content_paragraphs": [
+    "Simplilearn frames Apple’s marketing as a combination of refined product UX, minimalist advertising, targeted market selection, and premium positioning. The target audience centers on middle to upper-class urban users, age 20–45, including professionals and creatives.",
+    "Key strategies reiterated: focus on user experience and design, simple yet emotive advertising, deep market research to target appropriate audiences, and consistent brand voice. Five takeaways: target markets correctly, emphasize design, use emotion in advertising, prefer brevity over verbosity, and price based on perceived value.",
+    "The article is concise and emphasizes practical lessons marketers can extract from Apple’s approach rather than an exhaustive historical analysis."
+  ],
+  "sections": [
+    {"heading":"Target Audience","text":"Urban, middle/upper class, age 20-45, professionals and creatives; psychographic targeting emphasized."},
+    {"heading":"Strategy","text":"Design-led UX, minimalist ads, market research-driven product curation, premium pricing, and emotional storytelling."},
+    {"heading":"Key Takeaways","text":"Five practical marketing lessons for implementation."}
+  ],
+  "key_takeaways": [
+    "Design drives differentiation and perceived value.",
+    "Simplicity in messaging often outperforms complexity.",
+    "Emotional storytelling builds stronger connections than feature lists.",
+    "Proper market targeting is more valuable than broad reach.",
+    "Premium pricing aligns with perceived experience and ecosystem value."
+  ],
+  "strategies": ["Design-first product development","Minimalist creative","Psychographic segmentation","Premium pricing strategy","Event-driven product launches"],
+  "channels": ["Keynotes","Selective digital channels","Retail experience","UGC campaigns"],
+  "source_capture_notes": "Scraped Simplilearn tutorial article focusing on practical takeaways for marketers."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "cocacola-sprintzeal-2025-12-19",
+  "slug": "sprintzeal-coca-cola-marketing-strategy",
+  "source": "Sprintzeal",
+  "url": "https://www.sprintzeal.com/blog/coca-cola-marketing-strategy",
+  "title": "Coca Cola Marketing Strategy - A Case Study",
+  "author": "Sushmith",
+  "published_date": "2025-12-19",
+  "scraped_date": "2026-02-07",
+  "license_note": "Original article from Sprintzeal. Stored for dataset building and internal reference. Check source for reproduction rights.",
+  "content_paragraphs": [
+    "Coca-Cola is a global leader in non-alcoholic beverages with products available in 200+ countries and billions of servings daily. Its marketing strategy balances tradition with innovation, using the 4Ps (Product, Price, Place, Promotion) as a foundation.",
+    "Key components include global advertising strategies with regional adaptation, powerful branding and identity preservation, a diverse product portfolio (Coke, Diet Coke, Coke Zero, Fanta, Sprite, Maaza, etc.), competitive pricing strategies, and innovative promotions across offline and digital channels.",
+    "Coca-Cola leverages strategic sponsorships (Olympics, FIFA, NBA), engaging social media campaigns, influencer collaborations, and data-driven advertising. Personalization (e.g., 'Share a Coke' name labels) and e-commerce expansion are notable parts of their approach.",
+    "Sustainability focus for 2026: 100% recyclable packaging goal, 50% recycled content target by 2030, water stewardship partnerships, 25% carbon reduction by 2030, sustainable farming and community investments.",
+    "Future directions include metaverse experiments, AI-driven personalization, experience-driven marketing (pop-ups and events), and continued digital transformation."
+  ],
+  "sections": [
+    {"heading":"4Ps Marketing Mix","text":"Product diversity, dynamic pricing, global distribution, and multifaceted promotion."},
+    {"heading":"Branding & Promotion","text":"Regionalized advertising, sponsorships, social media, influencer work, personalization campaigns."},
+    {"heading":"Sustainability & Future","text":"World Without Waste, packaging targets, AI and metaverse exploration."}
+  ],
+  "key_takeaways": [
+    "Global reach plus regional adaptation is central to Coca-Cola's continued dominance.",
+    "Sponsorships and emotional branding create strong cultural associations.",
+    "Sustainability commitments and digital transformation are core future bets.",
+    "Personalization (Share a Coke) effectively drove engagement and sales uplift."
+  ],
+  "strategies": ["Global advertising with local language/creatives","Sponsorships of major events","Personalization (Share a Coke)","Data-driven digital ads","E-commerce and DTC expansion","Sustainability programs"],
+  "channels": ["TV","Outdoor","Social media","Influencer partnerships","E-commerce","Retail and vending networks"],
+  "source_capture_notes": "Scraped Sprintzeal article. Full article includes images and formatting not stored here."
+}

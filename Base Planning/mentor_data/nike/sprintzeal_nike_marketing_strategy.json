@@ -1,0 +1,49 @@
+{
+  "id": "nike-sprintzeal-2024-06-21",
+  "slug": "sprintzeal-nike-marketing-strategy",
+  "source": "Sprintzeal",
+  "url": "https://www.sprintzeal.com/blog/nike-marketing-strategy",
+  "title": "Nike Marketing Strategy 2026 - 7 Effective Findings from Case Studies",
+  "author": "Nchumbeni Yanthan",
+  "published_date": "2024-06-21",
+  "scraped_date": "2026-02-07",
+  "license_note": "Original article content from Sprintzeal. Stored here for dataset construction and internal use; check the source for reproduction rights.",
+  "content_paragraphs": [
+    "Nike has built a global brand around inspiration, emotion, diversity, and community. Their core marketing purpose is to 'keep moving the world forward' by combining product innovation, storytelling, sustainability, and community-building.",
+    "About Nike: multinational company designing, manufacturing and selling footwear, apparel, equipment. Founded by Bill Bowerman and Phil Knight (Blue Ribbon Sports) in 1964, rebranded as Nike in 1971. Nike owns brands including Converse, Jordan, and has acquired RTFKT Studios.",
+    "History highlights: Moon Shoes (1972), Waffle Trainer patent (1974), Air Force 1 (1982), signings like LeBron James (1994), Nike Shox (2000), Flyknit and React innovations, Colin Kaepernick 'Just Do It' campaign (2018), Tokyo 2020 uniforms.",
+    "Goals and Objectives: promote diversity, equity and inclusion; innovate sustainable materials; advance transparent/responsible supply chains; build communities via investment; encourage active lifestyles.",
+    "Target Audience breakdown: Athletes/professionals/enthusiasts, Running enthusiasts, Sports enthusiasts, Women in sports, Young athletes, Sustainability advocates. Nike uses segmentation to tailor messaging to these groups.",
+    "Challenges and Solutions: competition from Adidas/Reebok; export/legal constraints; supply chain geopolitics; reputational risk from controversies. Solutions include aggressive advertising, new media/digital marketing, emotional branding, tight segmentation, storytelling, newsworthiness, and loyalty programs.",
+    "7 Key Strategies (enumerated): Advertising (TV and social), New Media Marketing (digital signage, content, display, social), Emotional Branding (story-driven ads), Target Market Segmentation, Conveying a Story through simple brand voice, Newsworthiness (leveraging current events carefully), Investing in Customer Loyalty (app, community, product quality).",
+    "Approaches: publishing brand books (e.g., 'No Finish Line'), community-focused programs (Nike Community Impact Fund), digital transformation (35% digital sales goal to reach 50% by 2026), iconic athlete partnerships (Jordan, Federer, Tiger Woods, Kobe Bryant, LeBron James).",
+    "Evolution: Early performance and innovation focus; celebrity endorsements in the 1980s; 'Just Do It' era (1988); digital transformation; emotional branding focus; recent emphasis on sustainability and inclusivity."
+  ],
+  "sections": [
+    {"heading": "About Nike", "text": "Overview of company, brands, and mission to bring inspiration and innovation to every athlete."},
+    {"heading": "History", "text": "Founding (Bill Bowerman, Phil Knight), timeline of product and endorsement milestones."},
+    {"heading": "Goals and Objectives", "text": "Sustainability, DEI, supply chain responsibility, community investment."},
+    {"heading": "Challenges & Solutions", "text": "Competitive landscape, supply constraints, and marketing responses like advertising and digital investment."},
+    {"heading": "7 Findings", "text": "Advertising, new media, emotional branding, segmentation, storytelling, newsworthiness, loyalty investment."}
+  ],
+  "key_takeaways": [
+    "Nike balances product innovation with emotional storytelling to create lasting brand equity.",
+    "Segmentation and tailored messaging strengthen relevance across diverse audiences.",
+    "Digital transformation and direct-to-consumer channels are central to future growth goals.",
+    "Sustainability and community programs enhance brand purpose and attract value-aligned consumers."
+  ],
+  "strategies": [
+    "TV and social advertising",
+    "New media/digital campaigns and cross-channel storytelling",
+    "Emotional, purpose-driven creative",
+    "Audience segmentation and targeted messaging",
+    "Loyalty and app-driven retention programs",
+    "Sustainability messaging and supply chain transparency"
+  ],
+  "channels": ["TV", "Social media", "Content marketing", "Email", "Nike app", "Retail and DTC stores"],
+  "campaign_examples": [
+    {"name": "Colin Kaepernick 'Just Do It' Series", "year": 2018},
+    {"name": "Various athlete signings and product launches", "year": "various"}
+  ],
+  "source_capture_notes": "Scraped main content and enumerated strategies/challenges from Sprintzeal article. Full article includes images, TOC and site navigation not stored here."
+}

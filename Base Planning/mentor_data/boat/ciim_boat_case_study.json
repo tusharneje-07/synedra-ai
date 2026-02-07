@@ -1,0 +1,31 @@
+{
+  "id": "boat-ciim-2022-01",
+  "slug": "ciim-boat-case-study-marketing-strategy",
+  "source": "CIIM",
+  "url": "https://www.ciim.in/boat-case-study-marketing-strategy/",
+  "title": "boAt Case Study and Marketing Strategy",
+  "author": null,
+  "published_date": "2022-01",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from CIIM (Chandigarh Institute of Internet Marketing). Stored for dataset building and internal reference.",
+  "content_paragraphs": [
+    "boAt, founded in 2016, positioned itself as a lifestyle accessories brand targeting Indian youth with affordable, stylish audio and wearable products. The brand rose rapidly via digital marketing, retail expansion, and strategic celebrity endorsements.",
+    "Key milestones include early funding rounds (Fireside Ventures, Warburg Pincus, Qualcomm Ventures), rapid revenue growth in 2018-2020, and large market share in ear wear by 2019.",
+    "Marketing strategies: present as a lifestyle brand rather than pure electronics; heavy digital marketing (Google, Facebook, Instagram); expand product range from cables to earphones, speakers, smartwatches; use influencers and celebrity ambassadors (e.g., Kiara Advani); targeted youth-centric branding and pricing.",
+    "Distribution: started on Amazon/Flipkart and expanded to 5,000+ retail stores; community term 'boAtheads' used for loyal customers. The brand benefited from co-founder Aman Gupta's media visibility (Shark Tank India).",
+    "Conclusion: boAt’s blend of affordability, design, targeted marketing and retail expansion enabled rapid growth with promising future due to R&D and funding."
+  ],
+  "sections": [
+    {"heading":"History & Growth","text":"Founded 2016; early funding; revenue acceleration to leading earwear market share."},
+    {"heading":"Positioning","text":"Lifestyle accessory brand focused on youth; product durability and style."},
+    {"heading":"Marketing Mix","text":"Digital-first advertising, influencer & celebrity endorsements, product expansion, retail distribution."}
+  ],
+  "key_takeaways": [
+    "Positioning as lifestyle over electronics created emotional affinity with youth.",
+    "Omnichannel distribution (marketplaces + retail) helped scale reach quickly.",
+    "Celebrity/TV visibility (Shark Tank India) significantly boosted brand awareness and sales." 
+  ],
+  "strategies": ["Lifestyle positioning","Aggressive digital advertising","Influencer & celebrity partnerships","Product line expansion","Retail & marketplace distribution"],
+  "channels": ["E-commerce (Amazon, Flipkart)","Social media","Retail stores","TV/Media appearances"],
+  "source_capture_notes": "Scraped CIIM boAt case study article; saved key insights and strategic takeaways."
+}

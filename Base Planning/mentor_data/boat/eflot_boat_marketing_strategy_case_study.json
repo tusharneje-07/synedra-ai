@@ -1,0 +1,30 @@
+{
+  "id": "boat-eflot-2025-07-08",
+  "slug": "eflot-boat-lifestyle-marketing-strategy-case-study",
+  "source": "eflot",
+  "url": "https://eflot.com/blog/boat-lifestyle-marketing-strategy-case-study",
+  "title": "boAt Lifestyle Marketing Strategy Case Study",
+  "author": "Priyadarshini S",
+  "published_date": "2025-07-08",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from eflot. Saved for dataset building; consult original for reuse rights.",
+  "content_paragraphs": [
+    "Detailed boAt case study covering brand journey from bootstrapped beginnings to top wearable brand, heavy focus on digital marketing, influencer collaborations, product diversification and community building (boAtheads).",
+    "Highlights: rapid revenue growth to ₹3,122 crore by FY2024, strategic omnichannel distribution (marketplaces + offline retail), creative campaigns, merchandise collaborations (Masaba Gupta, Marvel), and localized influencer tie-ups across India.",
+    "Tactics: user-generated campaigns (#DoWhatFloatsYourboAt), VIP loyalty codes, omnichannel sales, positioning as affordable aspirational ‘Zara of electronics’, and leveraging cultural moments/celebrity partnerships for regional growth.",
+    "Outcomes: strong market share in audio and wearables, robust community engagement, and continued expansion into grooming and niche audio lines."
+  ],
+  "sections": [
+    {"heading":"Brand Journey","text":"Bootstrapped start, product-market fit, growth via digital-first tactics and influencer strategy."},
+    {"heading":"Digital & Influencer Strategy","text":"Memes, UGC, micro-influencer and celebrity tournaments, cross-platform viral campaigns."},
+    {"heading":"Business Tactics","text":"Value pricing, local manufacturing, product diversification, and omnichannel distribution."}
+  ],
+  "key_takeaways": [
+    "Community-first marketing (boAtheads) drove organic advocacy.",
+    "Influencer collaborations across cricket and Bollywood scaled mass awareness.",
+    "Product diversification and value pricing enabled category leadership and margin retention." 
+  ],
+  "strategies": ["UGC-led campaigns","Influencer & celebrity partnerships","Omnichannel distribution","Value-based pricing","Product diversification"],
+  "channels": ["E-commerce marketplaces","Social media","Retail stores","Influencer networks","Events & sponsorships"],
+  "source_capture_notes": "Scraped eflot article; preserved narrative on boAt’s brand building, campaign examples, and growth metrics."
+}

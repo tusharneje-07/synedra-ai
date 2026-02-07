@@ -1,0 +1,30 @@
+{
+  "id": "ikea-sprintzeal-2024-11",
+  "slug": "sprintzeal-ikea-marketing-strategy",
+  "source": "Sprintzeal",
+  "url": "https://www.sprintzeal.com/blog/ikea-marketing-strategy",
+  "title": "IKEA Marketing Strategy - An Inspiring Finding from the Case Studies",
+  "author": null,
+  "published_date": "2024-11",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Sprintzeal. Saved for dataset building; consult source for reuse rights.",
+  "content_paragraphs": [
+    "Sprintzeal's analysis covers IKEA’s history, flat-pack innovation, growth metrics (822M visitors in 2022), omnichannel marketing, SEO and content hubs, digital enhancements (AR/VR), and sustainability commitments.",
+    "Marketing mix: detailed 7P analysis (Product, Price, Place, Promotion, People, Process, Physical Evidence), omnichannel strategy, local market adaptations, and community-driven content (IKEAatHome).",
+    "Tactics: in‑store maze layouts, shoppable lookbooks, IKEA Family loyalty, influencer collaborations, limited edition drops (MARKERAD), and the use of AR for product visualization (IKEA Place).",
+    "Challenges noted: competition from local players and eCommerce platforms; solutions include hybrid retail models, localized catalogs, logistics automation, and circular design programs."
+  ],
+  "sections": [
+    {"heading":"History & Growth","text":"Origins under Ingvar Kamprad, flat-pack as a turning point, global expansion and milestones."},
+    {"heading":"Marketing Mix (7P)","text":"Product design, pricing, distribution, promotion, people, processes, and retail environment."},
+    {"heading":"Digital & Content","text":"SEO, content hubs, AR/VR, shoppable lookbooks and idea pages to inspire discovery."}
+  ],
+  "key_takeaways": [
+    "IKEA’s consistent brand identity and operational efficiencies make its marketing highly scalable.",
+    "Local adaptation with global coherence preserves relevance across markets.",
+    "Embedding technology that solves customer problems (AR visualization) improves conversion and reduces returns." 
+  ],
+  "strategies": ["Flat-pack and cost leadership","Omnichannel retail","Content-led inspiration hubs","Collaborations and limited drops","Sustainability and circular design"],
+  "channels": ["In-store experiences","Website & app","Social media","Email","Local SEO"],
+  "source_capture_notes": "Scraped Sprintzeal IKEA article; preserved data points and marketing mix analysis for the mentor dataset."
+}

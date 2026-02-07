@@ -1,0 +1,31 @@
+{
+  "id": "ikea-youngurban-2025-05-30",
+  "slug": "youngurban-ikea-case-study",
+  "source": "Young Urban Project",
+  "url": "https://www.youngurbanproject.com/ikea-case-study/",
+  "title": "IKEA Case Study: Strategy, Marketing, and Business Model",
+  "author": "Sakshi Jonwal",
+  "published_date": "2025-05-30",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Young Urban Project. Stored for dataset building; check source for citation and reuse rights.",
+  "content_paragraphs": [
+    "IKEA built a durable global brand by marrying affordable design (flat-pack) with an immersive in-store experience and omnichannel digital presence. Their mission: 'To create a better everyday life for the many people.'",
+    "Key business model features: flat-pack design, DIY assembly, cost leadership through scale and efficient supply chains, omnichannel retail, and local market adaptation through country-specific catalogs and product lines.",
+    "Marketing highlights: consistent visual identity (blue & yellow), quirky but useful brand tone, collaborations (Virgil Abloh, Sonos, LEGO), content hubs (Ideas, Life at Home), AR experiences (IKEA Place), and sustainability programs including circular design and buy-back/refurbish efforts.",
+    "Operational strengths: localized sourcing, logistics automation, economies of scale, and a customer-centric culture with a loyalty program (IKEA Family)."
+  ],
+  "sections": [
+    {"heading":"Business Model","text":"Flat-pack + DIY assembly, efficient logistics, economies of scale, and global expansion with local adaptation."},
+    {"heading":"Marketing Strategy","text":"Lifestyle positioning, consistent visual identity, content hubs, influencer/collab drops, and experiential in-store design."},
+    {"heading":"Technology & Experience","text":"AR app, omnichannel UX, search and SEO for local discovery, and logistics automation."}
+  ],
+  "key_takeaways": [
+    "Design for operational efficiency (flat-pack) can be a major competitive advantage.",
+    "Sell a lifestyle, not just product — content and in-store experience create emotional attachment.",
+    "Localize thoughtfully while preserving a globally consistent brand identity.",
+    "Integrate tech where it solves customer problems (AR, smart home, inventory automation)."
+  ],
+  "strategies": ["Flat-pack cost leadership","Omnichannel retail and AR experiences","Content-driven inspiration hubs","Collaborations and limited drops","Sustainability and circular design"],
+  "channels": ["In-store experience","Website & app","Social (TikTok, Instagram, Pinterest)","Email","Local SEO and retail listings"],
+  "source_capture_notes": "Scraped Young Urban Project IKEA case study; captured business model, marketing channels, collaborations, and sustainability initiatives."
+}

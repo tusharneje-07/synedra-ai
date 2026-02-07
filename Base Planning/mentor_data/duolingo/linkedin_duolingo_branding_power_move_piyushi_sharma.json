@@ -1,0 +1,39 @@
+{
+  "id": "duolingo-linkedin-piyushi-2025-05-28",
+  "slug": "linkedin-duolingo-branding-power-move-piyushi-sharma",
+  "source": "LinkedIn",
+  "url": "https://www.linkedin.com/pulse/case-study-how-duolingo-turned-owl-global-branding-power-sharma-n2whf/",
+  "title": "Case Study: How Duolingo Turned an Owl Into a Global Branding Power Move",
+  "author": "Piyushi Sharma",
+  "published_date": "2025-05-28",
+  "scraped_date": "2026-02-07",
+  "license_note": "LinkedIn article content captured for dataset building. LinkedIn may require sign-in for the full article; consult the original page for full access and reuse rights.",
+  "content_paragraphs": [
+    "Duolingo built a distinctive brand persona—Duo the owl—that functions as an emotional lever rather than a simple mascot. The company intentionally leans into reminders and passive-aggressive nudges to drive engagement and cultural attention.",
+    "Tone of voice: conversational, chaotic, and meme-native. Duolingo’s communications read like group chat banter, which helps them appear human and sharable on platforms like TikTok and X.",
+    "Social mechanics: product features feed social content (streaks, Wrapped-like moments), social content drives earned media which in turn drives downloads and engagement—forming a self-reinforcing cycle.",
+    "PR approach: avoid traditional press releases, favor stunts and shareable moments (fake rivalries, appearances at events, playful brand theatrics) that scale organically through social and editorial pickup.",
+    "Emotional branding: Duolingo trades on humorous accountability—guilt, belonging, and entertainment—to keep users returning. The brand intentionally mixes guilty nudges with inclusive, entertaining content to deepen attachment.",
+    "Practical lessons for brands: personify your brand, create native content for each platform, make internal jokes public, and lean into authenticity (even chaotic authenticity) when appropriate."
+  ],
+  "sections": [
+    {"heading": "Brand Persona", "text": "Duo as a character with quirks that make the brand memorable and emotionally engaging."},
+    {"heading": "Voice & Social", "text": "Unconventional, fast replies and meme-native posts that convert attention into downloads."},
+    {"heading": "PR & Stunts", "text": "Low-cost, high-shareability stunts that earn editorial coverage and social spread."},
+    {"heading": "Emotional Strategy", "text": "Using guilt, belonging, and humor as retention levers while balancing ethical risk."}
+  ],
+  "key_takeaways": [
+    "A strong, quirky persona can turn product friction (reminders) into cultural signals that drive growth.",
+    "Native, platform-first content and fast social replies create organic reach that outperforms many paid tactics.",
+    "PR stunts and cultural moments can be low-cost and high-impact if designed for shareability and timing.",
+    "Emotional nudges (guilt/accountability) work for many users but should be tested and optional to avoid alienation."
+  ],
+  "strategies": [
+    "Character-driven brand persona",
+    "Platform-native content and rapid social engagement",
+    "Viral PR stunts and cultural tie-ins",
+    "Data-driven notification experiments (bandit algorithms/A-B testing)"
+  ],
+  "channels": ["TikTok", "X (Twitter)", "LinkedIn", "Product push notifications", "Events & PR stunts"],
+  "source_capture_notes": "Scraped visible content from the LinkedIn article. Some LinkedIn-hosted content may be gated; this JSON captures the accessible summary and key elements observed in the article."
+}

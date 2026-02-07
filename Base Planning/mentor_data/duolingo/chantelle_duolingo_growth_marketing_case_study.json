@@ -1,0 +1,30 @@
+{
+  "id": "duolingo-chantelle-2022-08-12",
+  "slug": "chantelle-duolingo-growth-marketing-case-study",
+  "source": "Chantelle Marcelle",
+  "url": "https://chantellemarcelle.com/duolingo-growth-marketing-case-study/",
+  "title": "Duolingo’s $6-Billion Growth Marketing Case Study: Guilt, Memes, & Farts",
+  "author": "Chantelle",
+  "published_date": "2022-08-12",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Chantelle Marcelle. Stored for dataset building; consult original for reuse rights.",
+  "content_paragraphs": [
+    "Duolingo grew via culture-forward social media, experiments (Super Bowl spot, stunts), and a controversial 'guilt' engagement strategy that nudges users via push notifications and playful threats from mascot Duo.",
+    "Key mechanics: bandit algorithms, A/B testing with non-engineers able to run copy experiments, personalized notifications based on millions of user interactions; guilt notifications reported 5-8% more effective for re-engagement.",
+    "Creative stunts: staged 'death' of Duo in 2025 created massive engagement; Super Bowl creative leveraged cross-functional product & engineering input." ,
+    "Risks: guilt/shame appeals may backfire for some users; academic critiques warn about negative emotional associations; personalization and opt-out controls are suggested mitigations."
+  ],
+  "sections": [
+    {"heading":"Growth Mechanics","text":"Bandit algorithms, RLHF-like personalization for notifications, rapid A/B testing, cross-functional product-marketing collaboration."},
+    {"heading":"Creative & Social","text":"Meme-native social presence, Duo mascot-led stunts, TikTok-driven organic growth, Super Bowl and staged PR stunts."},
+    {"heading":"Risks & Ethics","text":"Guilt-based nudges can alienate some users; need for nuanced personalization and opt-outs."}
+  ],
+  "key_takeaways": [
+    "Data-driven notifications can materially boost retention but carry emotional risks.",
+    "Creative stunts aligned with product identity can scale cultural relevance rapidly.",
+    "Cross-functional experimentation and fast iteration are essential to Duolingo’s growth playbook." 
+  ],
+  "strategies": ["Bandit algorithms & rapid A/B testing","Personalized push notifications","Meme-native social & stunts","Product-marketing cross-functional experiments"],
+  "channels": ["TikTok","Social media","Push notifications","Super Bowl/events","Product-integrated campaigns"],
+  "source_capture_notes": "Scraped Chantelle Marcelle article summarising Duolingo's growth tactics, bandit algorithms, Super Bowl move, and cultural/social experiments."
+}

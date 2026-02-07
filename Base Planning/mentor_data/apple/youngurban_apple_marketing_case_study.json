@@ -1,0 +1,31 @@
+{
+  "id": "apple-youngurban-2025-05-26",
+  "slug": "youngurban-apple-marketing-case-study",
+  "source": "Young Urban Project",
+  "url": "https://www.youngurbanproject.com/apple-marketing-case-study/",
+  "title": "Apple Marketing Case Study: Lessons from the World's Most Valuable Brand",
+  "author": "Sakshi Jonwal",
+  "published_date": "2025-05-26",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Young Urban Project. Stored for dataset building; consult source for citation and reuse details.",
+  "content_paragraphs": [
+    "Apple markets identity and aspiration more than specs—focusing on creatives, premium seekers, and loyalists. The brand uses minimalist, high-impact creative and maintains cross-generational consistency.",
+    "Core strategies: Multichannel minimalist presence, design-led marketing, ecosystem building (products that increase customer lock-in), premium skimming pricing, global brand consistency with local adaptation, and sustainability messaging integrated into brand ethos.",
+    "Promotion mix: Apple uses cinematic product ads, keynote events as marketing moments, and retail experiences as part of promotion. Iconic campaigns include '1984', 'Silhouettes' (iPod), 'Misunderstood', and impactful utility/credibility ads like 911 (iPhone).",
+    "Marketing lessons: build consistent brand voice, treat design as marketing, sell aspirations, create ecosystems, and focus on high-quality over high-volume marketing."
+  ],
+  "sections": [
+    {"heading":"Target Audience","text":"Psychographic segmentation: creatives, premium seekers, loyalists; focus on identity and aspiration."},
+    {"heading":"Marketing Strategy","text":"Minimalist, high-impact channels; ecosystem design; premium positioning; local relevance."},
+    {"heading":"Promotion Mix","text":"Keynotes, cinematic ads, retail as marketing, selective digital presence."}
+  ],
+  "key_takeaways": [
+    "Design and simplicity can be a competitive advantage in marketing.",
+    "Ecosystem-driven products increase lifetime value and reduce churn.",
+    "Premium pricing works when supported by perceived value and brand story.",
+    "Marketing that focuses on identity and aspiration builds deep loyalty."
+  ],
+  "strategies": ["Minimalist high-impact creative","Ecosystem building","Premium pricing and skimming","Event-driven product launches","Global brand with localized narratives"],
+  "channels": ["Keynote events","Retail experience","Cinematic ads","Selective social/community-driven campaigns","UGC (#ShotOniPhone)"],
+  "source_capture_notes": "Scraped Young Urban Project article; saved main insights and campaign references."
+}

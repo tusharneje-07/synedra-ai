@@ -1,0 +1,30 @@
+{
+  "id": "spotify-nogood-2025-02-18",
+  "slug": "nogood-spotify-case-study",
+  "source": "NoGood",
+  "url": "https://nogood.io/blog/spotify-case-study/",
+  "title": "The Soundtrack to Growth: A Spotify Marketing Case Study",
+  "author": "Nicole Li",
+  "published_date": "2025-02-18",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from NoGood. Saved for dataset building; verify original for reuse rights.",
+  "content_paragraphs": [
+    "NoGood frames Spotify’s strategy around personalization, emotion, and data — with a focus on profitability and product experiments like full-screen video and AI features.",
+    "Key points: Spotify’s use of reinforcement learning and RLHF to personalize recommendations; AI DJ experiments; vertical scroll discovery for deeper content discovery; heavy investments in podcasting though profit from podcasts remains a challenge.",
+    "Business context: Spotify turned profitable after years of investment; growth driven by subscription price increases, acquisitions, product overhauls and prioritizing features that increase engagement and monetization.",
+    "Campaigns and mechanics: Wrapped, engineered virality through design-for-share, partnerships with artists and gaming/metaverse experiments like Spotify Island on Roblox." 
+  ],
+  "sections": [
+    {"heading":"Core Thesis","text":"Personalization, emotion, and data drive Spotify's product and marketing decisions."},
+    {"heading":"Product Experiments","text":"AI DJ, full-screen video discovery, vertical scroll UX, Spotify Island as brand experiences."},
+    {"heading":"Business Model","text":"Freemium conversions, ad revenue, creator monetization tools; profitability milestones noted."}
+  ],
+  "key_takeaways": [
+    "Reinforcement learning and RLHF are central to Spotify's personalization roadmap.",
+    "Product + marketing integration produces shareable experiences (Wrapped) that lower paid acquisition needs.",
+    "Monetization of podcasts remains a work-in-progress despite heavy investment."
+  ],
+  "strategies": ["Reinforced learning personalization","AI-driven features","Engineered virality","Creator economy integration","Cross-platform distribution"],
+  "channels": ["App ecosystem","Social sharing","Partnerships (Roblox)","Smart devices and integrations","OOH for Wrapped"],
+  "source_capture_notes": "Scraped NoGood article; captured analysis of Spotify's personalization, RL, AI experiments, and business context."
+}

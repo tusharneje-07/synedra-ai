@@ -1,0 +1,31 @@
+{
+  "id": "spotify-youngurban-2025-05-24",
+  "slug": "youngurban-spotify-case-study",
+  "source": "Young Urban Project",
+  "url": "https://www.youngurbanproject.com/spotify-case-study/",
+  "title": "Spotify Case Study: Innovation, Strategy & Growth",
+  "author": "Sakshi Jonwal",
+  "published_date": "2025-05-24",
+  "scraped_date": "2026-02-07",
+  "license_note": "Article content from Young Urban Project. Saved here for dataset building; consult original for reuse rights.",
+  "content_paragraphs": [
+    "Spotify’s marketing plays like a friend who gets you — hyper-personalized, data-driven, socially shareable. The brand leverages personalization (Discover Weekly, Wrapped), freemium conversion, social sharing, and localized global growth.",
+    "Target audience: Millennials and Gen Z, creators and podcasters, commuters and passive listeners. Product features include AI DJ, vertical video discovery feed, podcasts, and deep artist/creator tooling.",
+    "Core tactics: data storytelling (Wrapped), engineered virality, localized UX, multi-platform presence (smart speakers, cars, consoles), and creator partnerships. Business model centers on freemium revenue plus ads and creator tools.",
+    "Notable campaigns: Spotify Wrapped, Only You, 'Thanks 2016, It’s Been Weird', Billie Eilish Experience. Key lessons: use data creatively, freemium→upsell, let users build the brand, and localize while keeping global tone."
+  ],
+  "sections": [
+    {"heading":"Audience","text":"Millennials, Gen Z, creators, commuters — segmented by behavior and context."},
+    {"heading":"Core Strategy","text":"Hyper-personalization, shareable experiences (Wrapped), freemium funnel, and localization."},
+    {"heading":"Product & Distribution","text":"Music + podcasts + AI features; distribution across devices and integrations."}
+  ],
+  "key_takeaways": [
+    "Data-driven personalization (Wrapped) creates habitual sharing and organic virality.",
+    "Freemium model with localized pricing accelerates global adoption.",
+    "In-product social mechanics amplify earned media and reduce paid acquisition needs.",
+    "Localization that respects local taste is crucial for scale and relevance."
+  ],
+  "strategies": ["Hyper-personalization","Freemium-to-premium funnel","Shareable data-driven campaigns","Creator partnerships","Device integrations and ubiquitous access"],
+  "channels": ["App ecosystem","Social sharing","OOH campaigns (Wrapped)","Smart devices","Creator platforms"],
+  "source_capture_notes": "Scraped Young Urban Project Spotify case study; stored key sections and campaign references."
+}

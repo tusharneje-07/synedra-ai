@@ -1,0 +1,77 @@
+{
+  "id": "cascade_redbull_20240822",
+  "slug": "cascade_redbull_strategy_study",
+  "source": "Cascade",
+  "url": "https://www.cascade.app/studies/redbull-strategy-study",
+  "title": "Strategy Study: How Red Bull Became A Global Brand Through Marketing",
+  "author": "Tefi Alonso",
+  "published_date": "2024-08-22",
+  "scraped_date": "2026-02-07",
+  "license_note": "Original content © Cascade. Saved for internal dataset building and reference; check the original site for reproduction and reuse rights.",
+  "content_paragraphs": [
+    "Red Bull has grown from a simple energy drink manufacturer to one of the most recognized brands in the world, synonymous with sports, extreme performance, and victory.",
+    "Key statistics cited: cans sold worldwide in 2023: 12.138 billion; revenue in 2023: EUR 10.55 billion; estimated 2023 marketing budget ~EUR 3 billion (rumored 25-30% of revenue); sponsors athletes in 73 countries; employees in 2023: 17,848.",
+    "History: Chaleo Yoovidhya created Krating Daeng in Thailand (1976); Dietrich Mateschitz discovered it, partnered with Yoovidhya and co-founded Red Bull GmbH in 1984. Product launched in Austria in 1987 and expanded into Germany, the UK and the US in later years, often overcoming regulatory resistance through grassroots and nightlife channels.",
+    "Product portfolio and localization: Core SKUs (original, sugar-free, Red Bull Zero) plus seasonal and localized Editions. In 2024 Red Bull launched its first fully sugar-free Pink edition; Editions represented ~8% of sales in 2023 according to the study. The brand also offers market-specific lines such as ORGANICS by Red Bull in Germany.",
+    "Manufacturing and logistics: Red Bull uses regional production and partnerships (e.g., joint ventures and contract manufacturers) to reduce transport distances and optimize supply. The study cites a new production facility in Glendale, Arizona as part of U.S. expansion.",
+    "Sales and distribution: Red Bull primarily distributes B2B via owned distribution companies and field sales teams that secure premium shelf placement in stores, restaurants and on-premise channels; the company also leverages direct partnerships with large chains and e-commerce.",
+    "Brand and marketing approach: Red Bull built a cultural brand using sponsorship of extreme sports, music and events, ownership of sports teams (Formula 1, football clubs), high-profile stunts (Red Bull Stratos) and content/media investments. The can design and product format were used as a deliberate branding move to stand out on shelf.",
+    "Results and impact: the study emphasizes Red Bull's category dominance (example market share figures cited), consistent global expansion and the high leverage of experiential marketing and owned brand assets in driving long-term growth."
+  ],
+  "sections": [
+    { "heading": "Red Bull History", "text": "Founding story, discovery of Krating Daeng, founding of Red Bull GmbH (1984), early market launches and regulatory challenges, and rapid expansion through targeted channel strategies." },
+    { "heading": "Products and Portfolio", "text": "Core SKUs, seasonal Editions, and localized product strategies including ORGANICS and regional Editions." },
+    { "heading": "Product Localization", "text": "Local teams adapt flavors, sizes and product mixes to specific market preferences; Editions and regional SKUs increase relevance." },
+    { "heading": "Manufacturing", "text": "Use of regional facilities and contract partners to reduce logistics costs and improve responsiveness (example: Glendale, AZ production JV)." },
+    { "heading": "Sales Channels", "text": "B2B distribution via Red Bull-owned distributors, field sales teams for shelf placement, partnerships with major retailers and on-premise channels." },
+    { "heading": "Marketing & Sponsorship", "text": "Sponsorship of athletes and events, ownership of sports teams, content and experiential marketing, PR stunts and music/gaming initiatives to embed the brand culturally." },
+    { "heading": "Brand Extensions & Subsidiaries", "text": "Red Bull Racing (Formula 1), AlphaTauri, football clubs (New York Red Bulls, RB Salzburg), Red Bull Records and other cultural properties." },
+    { "heading": "Results & Key Takeaways", "text": "Scale metrics, market share highlights and lessons on founder-led vision, category creation, and the leverage of experiential marketing." }
+  ],
+  "key_takeaways": [
+    "Founder vision and persistence turned an imported tonic into a global lifestyle brand.",
+    "Category creation and cultural positioning (extreme sports, events, stunts) generate disproportionate brand equity compared with traditional advertising.",
+    "Owning distribution and dedicated field sales ensures premium in-store placement and execution.",
+    "Localized product editions and regional manufacturing support both relevance and cost efficiency.",
+    "Investing in owned media, teams and events (e.g., Formula 1) amplifies reach and creates proprietary channels for storytelling."
+  ],
+  "strategies": [
+    "Experiential & sponsorship marketing (extreme sports, events, athletes)",
+    "PR stunts and content-driven storytelling (e.g., Red Bull Stratos)",
+    "Selective product portfolio with seasonal/local editions",
+    "Owned distribution and field sales execution",
+    "Brand ownership of sports teams and cultural properties"
+  ],
+  "channels": [
+    "Events & sponsorships",
+    "Owned media and content platforms",
+    "Social media and influencer partnerships",
+    "Retail (on- and off-premise) via distributors",
+    "Television, video games and music partnerships",
+    "PR and earned media through stunts and high-profile activations"
+  ],
+  "campaigns": [
+    "Red Bull Stratos (Felix Baumgartner space jump)",
+    "Formula 1 team campaigns (Red Bull Racing)",
+    "Red Bull-sponsored extreme sports circuits and festivals",
+    "Localized product Editions and seasonal launches"
+  ],
+  "metrics": {
+    "cans_sold_2023": 12138000000,
+    "revenue_2023_eur": 10550000000,
+    "marketing_budget_2023_est_eur": 3000000000,
+    "employees_2023": 17848,
+    "countries_sponsored": 73,
+    "editions_pct_of_sales_2023": 8,
+    "market_share_global_2022_pct": 43,
+    "total_cans_sold_since_launch_est": 100000000000,
+    "note": "Metrics and percentages taken from the Cascade study; verify against Red Bull financial statements for precise reporting."
+  },
+  "faqs": [
+    "Why is Red Bull considered a marketing powerhouse? - Because it built a lifestyle brand through experiential sponsorships, content, stunts and owned media rather than relying primarily on traditional advertising.",
+    "How does Red Bull secure strong retail placement? - Through Red Bull-owned distribution companies and dedicated field sales teams that manage in-store execution.",
+    "What role do product Editions play? - Editions and localized SKUs drive relevance in regional markets and contributed to ~8% of sales in 2023 per the study."
+  ],
+  "source_capture_notes": "Fetched 2026-02-07 via HTTP GET (webfetch) from https://www.cascade.app/studies/redbull-strategy-study. Parsed visible article text and headings; omitted images, interactive elements and embedded media. Full HTML snapshot saved in the session webfetch output. Data fields such as cans sold, revenue, and marketing spend were captured as reported by the article; verify against primary financials if needed.",
+  "raw_text_reference": "https://www.cascade.app/studies/redbull-strategy-study"
+}
