@@ -37,7 +37,7 @@ const messages: ChatMessage[] = [
   },
   {
     agent: "Data Scientist",
-    message: "Data pipeline processed 1.2M records. Sentiment analysis complete — overall positive at 68%.",
+    message: "Data pipeline processed 1.2M records. Sentiment analysis complete — overall positive at 68%.The CMO advisory suggests a phased rollout strategy, beginning with thought leadership content before transitioning to product-specific messaging. This approach minimizes brand risk while maximizing engagement potential across target demographics.",
   },
   {
     agent: "CMO Advisor",
