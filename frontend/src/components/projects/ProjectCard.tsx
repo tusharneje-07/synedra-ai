@@ -51,47 +51,47 @@ export function ProjectCard({ project, onOpen, onDelete }: ProjectCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer group" onClick={handleOpen}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <Folder className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg truncate">{project.name}</CardTitle>
-              <CardDescription className="mt-1 line-clamp-2">
-                {project.description || 'No description provided'}
-              </CardDescription>
-            </div>
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer group h-full flex flex-col" onClick={handleOpen}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 shrink-0">
+            <Folder className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <Badge className={`${getStatusColor(project.status)} text-white`}>
-            {getStatusLabel(project.status)}
-          </Badge>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <CardTitle className="text-lg leading-tight break-words pr-2">
+                {project.name}
+              </CardTitle>
+              <Badge className={`${getStatusColor(project.status)} text-white shrink-0 text-xs`}>
+                {getStatusLabel(project.status)}
+              </Badge>
+            </div>
+            <CardDescription className="mt-1 line-clamp-2 text-sm">
+              {project.description || 'No description provided'}
+            </CardDescription>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            <span>
+      <CardContent className="pt-0 pb-3 flex-1">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">
               Created {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
             </span>
           </div>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            <span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">
               Updated {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
             </span>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" size="sm" onClick={handleOpen}>
+      <CardFooter className="flex justify-between gap-2 pt-3">
+        <Button variant="outline" size="sm" onClick={handleOpen} className="flex-1">
           Open Project
         </Button>
         {onDelete && (
