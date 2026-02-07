@@ -1,8 +1,7 @@
-interface ChatMessage {
-  agent: string;
-  message: string;
-  isUser?: boolean;
-}
+import { useEffect, useRef } from "react";
+import { useChatHistory } from "@/hooks/useAPI";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { Loader2 } from "lucide-react";
 
 const agentColors: Record<string, string> = {
   "Trend Analyst": "bg-[#EEF2FF] text-[#4F46E5] dark:bg-[rgba(79,70,229,0.09)] dark:text-[#A5B4FC] border border-transparent dark:border-[rgba(79,70,229,0.22)]",
@@ -37,7 +36,7 @@ const messages: ChatMessage[] = [
   },
   {
     agent: "Data Scientist",
-    message: "Data pipeline processed 1.2M records. Sentiment analysis complete — overall positive at 68%.The CMO advisory suggests a phased rollout strategy, beginning with thought leadership content before transitioning to product-specific messaging. This approach minimizes brand risk while maximizing engagement potential across target demographics.",
+    message: "Data pipeline processed 1.2M records. Sentiment analysis complete — overall positive at 68%.",
   },
   {
     agent: "CMO Advisor",
@@ -66,34 +65,86 @@ const messages: ChatMessage[] = [
 ];
 
 const ChatPanel = () => {
+  const { data, isLoading } = useChatHistory(50, 0);
+  const { messages: wsMessages } = useWebSocket();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [data, wsMessages]);
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 overflow-y-auto pr-1 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const chatMessages = data?.messages || [];
+  
+  // Combine chat history with WebSocket messages
+  const allMessages = [
+    ...chatMessages.map(msg => ({
+      id: msg.id,
+      agent: msg.user_name,
+      message: msg.content,
+      isUser: true,
+      timestamp: msg.timestamp,
+    })),
+    ...wsMessages
+      .filter(msg => 
+        msg.type === 'agent_thinking' || 
+        msg.type === 'debate' || 
+        msg.type === 'system'
+      )
+      .map((msg, idx) => ({
+        id: `ws-${idx}`,
+        agent: 'agent_name' in msg ? msg.agent_name : 'System',
+        message: 
+          msg.type === 'agent_thinking' ? msg.content :
+          msg.type === 'debate' ? msg.position :
+          msg.type === 'system' ? msg.message : '',
+        isUser: false,
+        timestamp: msg.timestamp,
+      })),
+  ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
   return (
-    <div className="flex-1 overflow-y-auto pr-1 space-y-2">
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-        >
-          <div className={`${msg.isUser ? 'max-w-[70%]' : 'max-w-[70%]'}`}>
-            {msg.isUser ? (
-              <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 px-4 py-2.5 rounded-lg">
-                <p className="text-sm leading-relaxed">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">You: </span>
-                  <span className="text-slate-700 dark:text-slate-300">{msg.message}</span>
-                </p>
-              </div>
-            ) : (
-              <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200/60 dark:border-slate-700/40 px-4 py-2.5 rounded-lg">
-                <p className="text-sm leading-relaxed">
-                  <span className={`font-semibold px-3 text-[12px] py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
-                    {msg.agent}
-                  </span>
-                  <span className="text-muted-foreground"> {msg.message}</span>
-                </p>
-              </div>
-            )}
-          </div>
+    <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 space-y-2">
+      {allMessages.length === 0 ? (
+        <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+          No messages yet. Start a conversation!
         </div>
-      ))}
+      ) : (
+        allMessages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`${msg.isUser ? 'max-w-[70%]' : 'max-w-[70%]'}`}>
+              <p className="text-sm leading-loose">
+                {msg.isUser ? (
+                  <span className="inline-block bg-[#DCF8C6] dark:bg-[#056162] px-4 py-2 rounded-lg">
+                    <span className="font-semibold text-[#075E54] dark:text-[#E9EDEF]">You: </span>
+                    <span className="text-[#303030] dark:text-[#E9EDEF]">{msg.message}</span>
+                  </span>
+                ) : (
+                  <>
+                    <span className={`font-semibold px-3 py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
+                      {msg.agent}
+                    </span>
+                    <span className="text-muted-foreground"> {msg.message}</span>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 };
