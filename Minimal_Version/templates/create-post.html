@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - Multi-Agent Post Generator</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-16 items-center">
+            <div class="mr-4 flex">
+                <a href="/" class="mr-6 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    <span class="hidden font-bold sm:inline-block">Multi-Agent Post Generator</span>
+                    <span class="font-bold sm:hidden">Post Gen</span>
+                </a>
+            </div>
+            <nav class="flex items-center space-x-4 lg:space-x-6 text-sm font-medium ml-auto">
+                <a href="/" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Brand Config
+                </a>
+                <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground">
+                    Create Post
+                </a>
+                <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Settings
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-6 lg:py-10">
+        <!-- Header -->
+        <div class="flex flex-col space-y-2 mb-8">
+            <h1 class="scroll-m-20 text-3xl font-extrabold tracking-tight lg:text-4xl">
+                Create New Post
+            </h1>
+            <p class="text-lg text-muted-foreground">
+                Define your post requirements and let AI agents create optimized content
+            </p>
+        </div>
+
+        <!-- Status Message -->
+        <div id="status-message" class="hidden mb-6"></div>
+
+        <!-- Brand Selection -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-semibold tracking-tight mb-6">Select Brand</h2>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label for="selected_brand" class="label">
+                        Brand <span class="text-destructive">*</span>
+                    </label>
+                    <select id="selected_brand" required class="input">
+                        <option value="">Loading brands...</option>
+                    </select>
+                </div>
+                
+                <!-- Brand Info Display -->
+                <div id="brand-info" class="hidden">
+                    <div class="rounded-lg border border-border bg-muted/50 p-4">
+                        <h3 class="font-semibold mb-3">Brand Details</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <span class="text-muted-foreground">Tone:</span>
+                                <p class="font-medium" id="info-tone">-</p>
+                            </div>
+                            <div>
+                                <span class="text-muted-foreground">Audience:</span>
+                                <p class="font-medium" id="info-audience">-</p>
+                            </div>
+                            <div>
+                                <span class="text-muted-foreground">Platforms:</span>
+                                <p class="font-medium" id="info-platforms">-</p>
+                            </div>
+                            <div>
+                                <span class="text-muted-foreground">Segment:</span>
+                                <p class="font-medium" id="info-segment">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Requirements Form -->
+        <div class="card p-6 lg:p-8">
+            <h2 class="text-2xl font-semibold tracking-tight mb-6">Post Requirements</h2>
+            
+            <form id="post-form" class="space-y-6">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <!-- Post Topic -->
+                    <div class="space-y-2">
+                        <label for="post_topic" class="label">
+                            Post Topic <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="post_topic" name="post_topic" required 
+                            class="input" placeholder="e.g., New Product Launch, Industry Insight">
+                    </div>
+
+                    <!-- Target Platform -->
+                    <div class="space-y-2">
+                        <label for="target_platform" class="label">
+                            Target Platform <span class="text-destructive">*</span>
+                        </label>
+                        <select id="target_platform" name="target_platform" required class="input">
+                            <option value="">Select platform...</option>
+                            <option value="Twitter">Twitter</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                        </select>
+                    </div>
+
+                    <!-- Post Objective -->
+                    <div class="space-y-2">
+                        <label for="post_objective" class="label">
+                            Post Objective <span class="text-destructive">*</span>
+                        </label>
+                        <select id="post_objective" name="post_objective" required class="input">
+                            <option value="">Select objective...</option>
+                            <option value="Awareness">Awareness</option>
+                            <option value="Engagement">Engagement</option>
+                            <option value="Conversion">Conversion</option>
+                            <option value="Education">Education</option>
+                        </select>
+                    </div>
+
+                    <!-- Content Type -->
+                    <div class="space-y-2">
+                        <label for="content_type" class="label">
+                            Content Type <span class="text-destructive">*</span>
+                        </label>
+                        <select id="content_type" name="content_type" required class="input">
+                            <option value="">Select type...</option>
+                            <option value="Announcement">Announcement</option>
+                            <option value="Educational">Educational</option>
+                            <option value="Promotional">Promotional</option>
+                            <option value="Story">Story</option>
+                            <option value="Question">Question</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Full Width Fields -->
+                <div class="space-y-6">
+                    <!-- Key Message -->
+                    <div class="space-y-2">
+                        <label for="key_message" class="label">
+                            Key Message <span class="text-destructive">*</span>
+                        </label>
+                        <textarea id="key_message" name="key_message" required rows="3"
+                            class="textarea" placeholder="The main point you want to communicate..."></textarea>
+                    </div>
+
+                    <!-- Target CTA -->
+                    <div class="space-y-2">
+                        <label for="target_cta" class="label">
+                            Call to Action
+                        </label>
+                        <input type="text" id="target_cta" name="target_cta" 
+                            class="input" placeholder="e.g., Visit our website, Download now, Sign up">
+                    </div>
+
+                    <!-- Trending Topics -->
+                    <div class="space-y-2">
+                        <label for="trending_topics" class="label">
+                            Trending Topics/Hashtags
+                        </label>
+                        <input type="text" id="trending_topics" name="trending_topics" 
+                            class="input" placeholder="e.g., #AI, #TechTrends, #Innovation">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-between items-center pt-4">
+                    <button type="button" onclick="clearFormCookie('post-form'); document.getElementById('post-form').reset(); showMessage('Form data cleared', 'info');" 
+                        class="btn btn-ghost h-10 px-6">
+                        Clear Saved Data
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary h-10 px-8">
+                        Generate Post with AI Agents
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Enhanced Loading Modal with Live Agent Debate -->
+    <div id="loading-modal" class="hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-md">
+        <div class="fixed inset-4 overflow-y-auto">
+            <div class="min-h-full flex items-center justify-center p-4">
+                <div class="card p-6 lg:p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                    <div class="space-y-6">
+                        <!-- Header -->
+                        <div class="text-center space-y-3">
+                            <div class="flex justify-center">
+                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                            </div>
+                            <h3 class="text-2xl font-bold tracking-tight" id="loading-status">
+                                AI Agents are Debating...
+                            </h3>
+                            <p class="text-sm text-muted-foreground">
+                                Watch in real-time as 6 specialist agents analyze your requirements (30-60 seconds)
+                            </p>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-muted rounded-full h-2">
+                            <div id="progress-bar" class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Agent Debate Grid - 3 Columns -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- TrendAgent -->
+                            <div id="agent-card-trend" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500">
+                                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">TrendAgent</h4>
+                                            <div id="agent-status-trend" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">TrendPulse Strategist</p>
+                                        <div id="agent-thinking-trend" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BrandAgent -->
+                            <div id="agent-card-brand" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500">
+                                            <circle cx="13.5" cy="6.5" r=".5"></circle>
+                                            <circle cx="17.5" cy="10.5" r=".5"></circle>
+                                            <circle cx="8.5" cy="7.5" r=".5"></circle>
+                                            <circle cx="6.5" cy="12.5" r=".5"></circle>
+                                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">BrandAgent</h4>
+                                            <div id="agent-status-brand" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">BrandGuardian Architect</p>
+                                        <div id="agent-thinking-brand" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ComplianceAgent -->
+                            <div id="agent-card-compliance" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-500">
+                                            <path d="M9 9H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-5m-6 0V4m0 5h6m-6 0h6m-6 0V4m6 0v5m0-5a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v0"></path>
+                                            <line x1="12" y1="2" x2="12" y2="9"></line>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">ComplianceAgent</h4>
+                                            <div id="agent-status-compliance" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Ethics Watchdog</p>
+                                        <div id="agent-thinking-compliance" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RiskAgent -->
+                            <div id="agent-card-risk" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">RiskAgent</h4>
+                                            <div id="agent-status-risk" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Crisis Sentinel</p>
+                                        <div id="agent-thinking-risk" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- EngagementAgent -->
+                            <div id="agent-card-engagement" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">EngagementAgent</h4>
+                                            <div id="agent-status-engagement" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Community Cultivator</p>
+                                        <div id="agent-thinking-engagement" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CMOAgent -->
+                            <div id="agent-card-cmo" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500">
+                                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="font-semibold text-sm">CMO (Arbitrator)</h4>
+                                            <div id="agent-status-cmo" class="agent-status-icon text-xs"><svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v6h.01M6 8a6 6 0 1 0 12 0A6 6 0 0 0 6 8z"></path></svg></div>
+                                        </div>
+                                        <p class="text-xs text-muted-foreground mt-1">Strategic Arbiter</p>
+                                        <div id="agent-thinking-cmo" class="mt-2 text-xs text-muted-foreground italic min-h-[40px]">
+                                            Waiting to analyze...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Agent Activity -->
+                        <div class="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl animate-pulse">🤔</div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-sm mb-1">Current Activity</h4>
+                                    <p id="current-activity" class="text-sm text-muted-foreground">
+                                        Initializing debate orchestrator...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBrandsForPostCreation();
+            setupPostForm();
+        });
+    </script>
+</body>
+</html>

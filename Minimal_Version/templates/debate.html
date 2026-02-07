@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Debate - Multi-Agent Post Generator</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-16 items-center">
+            <div class="mr-4 flex">
+                <a href="/" class="mr-6 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    <span class="hidden font-bold sm:inline-block">Multi-Agent Post Generator</span>
+                    <span class="font-bold sm:hidden">Post Gen</span>
+                </a>
+            </div>
+            <nav class="flex items-center space-x-4 lg:space-x-6 text-sm font-medium ml-auto">
+                <a href="/" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Brand Config
+                </a>
+                <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Create Post
+                </a>
+                <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Settings
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-6 lg:py-10">
+        <!-- Header -->
+        <div class="flex flex-col space-y-2 mb-8">
+            <h1 class="scroll-m-20 text-3xl font-extrabold tracking-tight lg:text-4xl">
+                AI Agent Debate
+            </h1>
+            <p class="text-lg text-muted-foreground">
+                Specialist agents analyze your post requirements and provide recommendations
+            </p>
+        </div>
+
+        <!-- Post Context -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-xl font-semibold tracking-tight mb-4">Post Context</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <span class="text-muted-foreground">Topic:</span>
+                    <p class="font-medium" id="ctx-topic">-</p>
+                </div>
+                <div>
+                    <span class="text-muted-foreground">Platform:</span>
+                    <p class="font-medium" id="ctx-platform">-</p>
+                </div>
+                <div>
+                    <span class="text-muted-foreground">Objective:</span>
+                    <p class="font-medium" id="ctx-objective">-</p>
+                </div>
+                <div>
+                    <span class="text-muted-foreground">Type:</span>
+                    <p class="font-medium" id="ctx-type">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Analyses -->
+        <div class="space-y-6 mb-8">
+            <h2 class="text-2xl font-semibold tracking-tight">Agent Analyses</h2>
+            <div id="debates-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p class="text-muted-foreground col-span-full">Loading agent debates...</p>
+            </div>
+        </div>
+
+        <!-- CMO Decision -->
+        <div id="cmo-decision-container" class="mb-8">
+            <!-- CMO decision will be populated here -->
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-4">
+            <a href="/create-post" class="btn btn-outline h-10 px-6">
+                Create Another Post
+            </a>
+            <button id="view-results-btn" class="btn btn-primary h-10 px-6 hidden">
+                View Generated Posts
+            </button>
+        </div>
+    </main>
+
+    <script src="/static/js/scripts.js"></script>
+    <script>
+        // Get post input ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const postInputId = pathParts[pathParts.length - 1];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (postInputId) {
+                loadDebateData(postInputId);
+            }
+        });
+    </script>
+</body>
+</html>

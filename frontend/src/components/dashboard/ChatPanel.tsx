@@ -147,7 +147,7 @@ const ChatPanel = ({ projectId }: ChatPanelProps) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* Clear Chats Button */}
       {allMessages.length > 0 && (
         <div className="flex justify-end pb-2">
@@ -189,7 +189,7 @@ const ChatPanel = ({ projectId }: ChatPanelProps) => {
         </div>
       )}
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2 custom-scrollbar">
+      <div ref={scrollRef} className="flex-1 overflow-y-scroll overflow-x-hidden pr-1 space-y-2 custom-scrollbar">
       {allMessages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
           No messages yet. Start a conversation!

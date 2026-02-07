@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Configuration - Multi-Agent Post Generator</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-16 items-center">
+            <div class="mr-4 flex">
+                <a href="/" class="mr-6 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    <span class="hidden font-bold sm:inline-block">Multi-Agent Post Generator</span>
+                    <span class="font-bold sm:hidden">Post Gen</span>
+                </a>
+            </div>
+            <nav class="flex items-center space-x-4 lg:space-x-6 text-sm font-medium ml-auto">
+                <a href="/" class="transition-colors hover:text-foreground/80 text-foreground">
+                    Brand Config
+                </a>
+                <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Create Post
+                </a>
+                <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Settings
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-6 lg:py-10">
+        <!-- Header -->
+        <div class="flex flex-col space-y-2 mb-8">
+            <h1 class="scroll-m-20 text-3xl font-extrabold tracking-tight lg:text-4xl">
+                Brand Configuration
+            </h1>
+            <p class="text-lg text-muted-foreground">
+                Define your brand identity, tone, and guidelines for AI-powered content generation
+            </p>
+        </div>
+
+        <!-- Status Message -->
+        <div id="status-message" class="hidden mb-6"></div>
+
+        <!-- Existing Brands -->
+        <div class="mb-8">
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-semibold tracking-tight">Existing Brands</h2>
+                </div>
+                <div id="brands-list" class="space-y-4">
+                    <p class="text-muted-foreground">Loading brands...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brand Form -->
+        <div class="card p-6 lg:p-8">
+            <h2 class="text-2xl font-semibold tracking-tight mb-6">Create New Brand</h2>
+            
+            <form id="brand-form" class="space-y-6">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <!-- Brand Name -->
+                    <div class="space-y-2">
+                        <label for="brand_name" class="label">
+                            Brand Name <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="brand_name" name="brand_name" required 
+                            class="input" placeholder="e.g., TechCorp, GreenEarth">
+                    </div>
+
+                    <!-- Brand Tone -->
+                    <div class="space-y-2">
+                        <label for="brand_tone" class="label">
+                            Brand Tone <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="brand_tone" name="brand_tone" required 
+                            class="input" placeholder="e.g., Professional, Casual, Witty">
+                    </div>
+
+                    <!-- Target Audience -->
+                    <div class="space-y-2">
+                        <label for="target_audience" class="label">
+                            Target Audience <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="target_audience" name="target_audience" required 
+                            class="input" placeholder="e.g., Young Professionals, Gen Z">
+                    </div>
+
+                    <!-- Social Platforms -->
+                    <div class="space-y-2">
+                        <label for="social_platforms" class="label">
+                            Social Platforms <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="social_platforms" name="social_platforms" required 
+                            class="input" placeholder="e.g., Twitter, LinkedIn, Instagram">
+                    </div>
+
+                    <!-- Market Segment -->
+                    <div class="space-y-2">
+                        <label for="market_segment" class="label">
+                            Market Segment <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="market_segment" name="market_segment" required 
+                            class="input" placeholder="e.g., SaaS, E-commerce, Healthcare">
+                    </div>
+
+                    <!-- Brand Personality -->
+                    <div class="space-y-2">
+                        <label for="brand_personality" class="label">
+                            Brand Personality <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="brand_personality" name="brand_personality" required 
+                            class="input" placeholder="e.g., Innovative, Friendly, Bold">
+                    </div>
+                </div>
+
+                <!-- Full Width Fields -->
+                <div class="space-y-6">
+                    <!-- Brand Description -->
+                    <div class="space-y-2">
+                        <label for="brand_description" class="label">
+                            Brand Description <span class="text-destructive">*</span>
+                        </label>
+                        <textarea id="brand_description" name="brand_description" required rows="3"
+                            class="textarea" placeholder="Describe your brand's mission, values, and unique selling proposition..."></textarea>
+                    </div>
+
+                    <!-- Content Guidelines -->
+                    <div class="space-y-2">
+                        <label for="content_guidelines" class="label">
+                            Content Guidelines <span class="text-destructive">*</span>
+                        </label>
+                        <textarea id="content_guidelines" name="content_guidelines" required rows="3"
+                            class="textarea" placeholder="Specific do's and don'ts for content creation..."></textarea>
+                    </div>
+
+                    <!-- Competitor Info -->
+                    <div class="space-y-2">
+                        <label for="competitor_info" class="label">
+                            Competitor Information
+                        </label>
+                        <textarea id="competitor_info" name="competitor_info" rows="3"
+                            class="textarea" placeholder="Key competitors and how your brand differentiates..."></textarea>
+                    </div>
+
+                    <!-- Brand Values -->
+                    <div class="space-y-2">
+                        <label for="brand_values" class="label">
+                            Brand Values <span class="text-destructive">*</span>
+                        </label>
+                        <input type="text" id="brand_values" name="brand_values" required 
+                            class="input" placeholder="e.g., Innovation, Sustainability, Customer-First">
+                    </div>
+
+                    <!-- Risk Tolerance -->
+                    <div class="space-y-2">
+                        <label for="risk_tolerance" class="label">
+                            Risk Tolerance <span class="text-destructive">*</span>
+                        </label>
+                        <select id="risk_tolerance" name="risk_tolerance" required class="input">
+                            <option value="">Select risk level...</option>
+                            <option value="Conservative">Conservative</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="Bold">Bold</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-between items-center pt-4">
+                    <button type="button" onclick="clearFormCookie('brand-form'); document.getElementById('brand-form').reset(); showMessage('Form data cleared', 'info');" 
+                        class="btn btn-ghost h-10 px-6">
+                        Clear Saved Data
+                    </button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary h-10 px-8">
+                        Create Brand Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="/static/js/scripts.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBrands();
+            setupBrandForm();
+        });
+    </script>
+</body>
+</html>

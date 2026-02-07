@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 216 34% 17%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Custom select styling */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(226, 232, 240)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+  
+  select option {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    padding: 0.5rem;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground shadow hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80;
+  }
+  
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90;
+  }
+  
+  .btn-outline {
+    @apply border border-input bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .card {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow;
+  }
+  
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  select.input {
+    @apply cursor-pointer bg-background;
+  }
+  
+  select.input option {
+    @apply bg-background text-foreground py-2;
+  }
+  
+  select.input option:checked {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  select.input option:hover {
+    @apply bg-accent text-accent-foreground;
+  }
+  
+  .textarea {
+    @apply flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+  
+  .badge-default {
+    @apply border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80;
+  }
+  
+  .badge-secondary {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .badge-outline {
+    @apply text-foreground;
+  }
+  
+  /* Agent card animations */
+  .agent-card {
+    @apply transition-all duration-300;
+  }
+  
+  .agent-card:hover {
+    @apply shadow-lg;
+  }
+  
+  .agent-status-icon {
+    @apply inline-flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300;
+  }
+  
+  /* Pulse animation for thinking agents */
+  @keyframes pulse-border {
+    0%, 100% {
+      border-color: hsl(var(--primary));
+      opacity: 1;
+    }
+    50% {
+      border-color: hsl(var(--primary));
+      opacity: 0.5;
+    }
+  }
+  
+  .agent-card.ring-2 {
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+}

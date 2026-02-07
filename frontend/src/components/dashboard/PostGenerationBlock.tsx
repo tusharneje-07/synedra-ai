@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Loader2, PlayCircle, Brain, Sparkles } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import ReactMarkdown from "react-markdown";
@@ -30,17 +30,36 @@ Once the AI council analyzes your project and reaches consensus, the generated p
   const [phase, setPhase] = useState<'idle' | 'debating' | 'thinking' | 'complete'>('idle');
   const thinkingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const processingDecisionRef = useRef(false);
+  const lastDecisionIdRef = useRef<string | null>(null);
   
   const { messages: wsMessages } = useWebSocket();
   const sendMessageMutation = useSendChatMessage();
   const { toast } = useToast();
 
-  // Simplified state machine - just track the most recent decision
-  useEffect(() => {
+  // Memoize derived values to prevent unnecessary recalculations
+  const councilState = useMemo(() => {
     const hasCouncilStart = wsMessages.some(msg => msg.type === 'council_start');
     const hasCouncilEnd = wsMessages.some(msg => msg.type === 'council_end');
     const decisionMessages = wsMessages.filter(msg => msg.type === 'decision');
     const latestDecision = decisionMessages.length > 0 ? decisionMessages[decisionMessages.length - 1] : null;
+    const decisionId = latestDecision && 'timestamp' in latestDecision ? String(latestDecision.timestamp) : null;
+    
+    return {
+      hasCouncilStart,
+      hasCouncilEnd,
+      latestDecision,
+      decisionId
+    };
+  }, [wsMessages.length]); // Only recalculate when message count changes
+
+  // Simplified state machine - just track the most recent decision
+  useEffect(() => {
+    const { hasCouncilStart, hasCouncilEnd, latestDecision, decisionId } = councilState;
+    
+    // Skip if we've already processed this decision
+    if (decisionId && lastDecisionIdRef.current === decisionId) {
+      return;
+    }
     
     // Phase 1: Council starts - reset everything
     if (hasCouncilStart && (phase === 'idle' || phase === 'complete')) {
@@ -49,6 +68,7 @@ Once the AI council analyzes your project and reaches consensus, the generated p
         thinkingTimerRef.current = null;
       }
       processingDecisionRef.current = false;
+      lastDecisionIdRef.current = null;
       setPhase('debating');
       return;
     }
@@ -58,6 +78,7 @@ Once the AI council analyzes your project and reaches consensus, the generated p
       const decisionContent = 'decision' in latestDecision ? latestDecision.decision : '';
       
       processingDecisionRef.current = true;
+      lastDecisionIdRef.current = decisionId;
       setPhase('thinking');
       
       // Show thinking animation for 1.5 seconds then complete
@@ -74,9 +95,10 @@ Once the AI council analyzes your project and reaches consensus, the generated p
       setContent('# Error\n\nCouncil session ended without generating content. Please try again.');
       setPhase('idle');
       processingDecisionRef.current = false;
+      lastDecisionIdRef.current = null;
       return;
     }
-  }, [wsMessages, phase]);
+  }, [councilState, phase]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -111,7 +133,7 @@ Once the AI council analyzes your project and reaches consensus, the generated p
   };
 
   return (
-    <div className="rounded-lg bg-card p-5 flex flex-col flex-1 min-h-0 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+    <div className="rounded-lg  bg-card p-5 flex flex-col flex-1 min-h-0 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-foreground">
           Post Generation
@@ -158,7 +180,7 @@ Once the AI council analyzes your project and reaches consensus, the generated p
 
       {/* Thinking/Processing animation - show after debate ends */}
       {phase === 'thinking' && (
-        <div className="flex flex-col items-center justify-center gap-4 mb-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-6 rounded-lg border border-purple-200 dark:border-purple-800">
+        <div className="hidden flex-col items-center justify-center gap-4 mb-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-6 rounded-lg border border-purple-200 dark:border-purple-800">
           <div className="relative">
             <Brain className="h-8 w-8 text-purple-600 dark:text-purple-400 animate-pulse" />
             <Sparkles className="h-4 w-4 text-blue-500 absolute -top-1 -right-1 animate-bounce" />
@@ -179,8 +201,8 @@ Once the AI council analyzes your project and reaches consensus, the generated p
         </div>
       )}
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
+      <div className="flex-1 min-h-0 max-h-[60vh] overflow-y-scroll">
+        <div className="h-full overflow-y-scroll pr-2 custom-scrollbar">
           <div className="prose prose-sm dark:prose-invert max-w-none p-4 bg-muted/30 rounded-lg">
             {phase === 'complete' || content.includes('#') ? (
               <ReactMarkdown
