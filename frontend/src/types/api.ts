@@ -58,7 +58,12 @@ export interface MentionedAgent {
 export interface ChatMessage {
   id: string;
   content: string;
-  user_name: string;
+  sender_type?: string;
+  sender_name?: string;
+  agent_id?: string | null;
+  agent_role?: string | null;
+  message_type?: string;
+  user_name?: string; // For backwards compatibility
   timestamp: string;
   mentioned_agents: MentionedAgent[];
   is_agent_triggered: boolean;
@@ -72,6 +77,7 @@ export interface ChatHistoryResponse {
 
 export interface ChatMessageCreate {
   content: string;
+  project_id: number;
   user_name?: string;
 }
 
@@ -167,6 +173,14 @@ export interface CouncilEndMessage extends WSMessage {
   outcome: string;
 }
 
+export interface UserMessage extends WSMessage {
+  type: "user_message";
+  content: string;
+  sender_name: string;
+  project_id: number;
+  mentioned_agents: string[];
+}
+
 export type WebSocketMessage =
   | AgentThinkingMessage
   | AgentStatusMessage
@@ -174,7 +188,8 @@ export type WebSocketMessage =
   | DecisionMessage
   | SystemMessage
   | CouncilStartMessage
-  | CouncilEndMessage;
+  | CouncilEndMessage
+  | UserMessage;
 
 // Council Execution Types
 export interface CouncilExecutionRequest {

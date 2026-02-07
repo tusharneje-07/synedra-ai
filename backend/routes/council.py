@@ -12,6 +12,7 @@ from database.base import get_db
 from schemas.council import CouncilExecutionRequest, CouncilExecutionResponse
 from services.council_integration import council_integration
 from services.brand_config import BrandConfigService
+from services.project_service import ProjectService
 
 router = APIRouter()
 
@@ -43,6 +44,15 @@ async def execute_council(
         }
         ```
     """
+    # Validate project exists and get project details
+    project_service = ProjectService(db)
+    project = await project_service.get_project(request.project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with ID {request.project_id} not found"
+        )
+    
     # Get brand configuration if requested
     brand_config = None
     
@@ -62,11 +72,24 @@ async def execute_council(
         if config:
             brand_config = config.to_dict()
     
-    # Execute council session
+    # Prepare project context for agents
+    project_context = {
+        "project_id": project.id,
+        "project_name": project.name,
+        "description": project.description,
+        "post_topic": project.post_topic,
+        "product_details": project.product_details,
+        "target_details": project.target_details,
+        "questionnaire_data": project.questionnaire_data,
+    }
+    
+    # Execute council session with project context
     result = await council_integration.run_council_session(
         prompt=request.prompt,
         brand_config=brand_config,
-        trigger_agents=request.trigger_agents
+        trigger_agents=request.trigger_agents,
+        project_context=project_context,
+        db=db
     )
     
     if not result["success"]:

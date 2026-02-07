@@ -99,7 +99,11 @@ const Dashboard = () => {
             <AgentsGrid />
           </div>
           <div className="flex-1 min-h-0">
-            <PostGenerationBlock />
+            <PostGenerationBlock 
+              projectId={project.id}
+              projectName={project.name}
+              postTopic={project.post_topic}
+            />
           </div>
         </div>
 
@@ -110,8 +114,8 @@ const Dashboard = () => {
               Agent Activity - Project: {project.name}
             </h2>
             <div className="w-full h-px bg-border/60 mb-3" />
-            <ChatPanel />
-            <ChatInput />
+            <ChatPanel projectId={project.id} />
+            <ChatInput projectId={project.id} />
           </div>
         </div>
       </div>

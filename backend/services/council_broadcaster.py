@@ -7,10 +7,13 @@ Integrates with CouncilGraph to broadcast events to WebSocket clients.
 
 import asyncio
 import logging
+import uuid
 from typing import Optional, Dict, Any
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.websocket_manager import manager
+from models.chat_message import ChatMessage
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +29,26 @@ class CouncilEventBroadcaster:
     def __init__(self):
         self.current_session_id: Optional[str] = None
         self.session_start_time: Optional[datetime] = None
+        self.db: Optional[AsyncSession] = None
+        self.project_id: Optional[int] = None
+    
+    def set_session_context(
+        self, 
+        session_id: str, 
+        db: Optional[AsyncSession] = None,
+        project_id: Optional[int] = None
+    ):
+        """
+        Set the session context for database persistence.
+        
+        Args:
+            session_id: Session identifier
+            db: Database session for saving messages
+            project_id: Project ID for linking messages
+        """
+        self.current_session_id = session_id
+        self.db = db
+        self.project_id = project_id
     
     async def broadcast_council_start(
         self,
@@ -102,6 +125,26 @@ class CouncilEventBroadcaster:
             content: Agent's reasoning/thinking
             step: Current processing step
         """
+        # Save to database if session context is set
+        if self.db and self.project_id and self.current_session_id:
+            try:
+                chat_message = ChatMessage(
+                    message_id=str(uuid.uuid4()),
+                    project_id=self.project_id,
+                    session_id=self.current_session_id,
+                    content=content,
+                    sender_type="agent",
+                    sender_name=agent_name,
+                    agent_id=agent_id,
+                    agent_role=agent_name,
+                    message_type="thinking"
+                )
+                self.db.add(chat_message)
+                await self.db.commit()
+            except Exception as e:
+                logger.error(f"Failed to save agent thinking to database: {e}")
+        
+        # Broadcast via WebSocket
         await manager.send_agent_thinking(agent_id, agent_name, content, step)
     
     async def broadcast_agent_status(
@@ -140,6 +183,26 @@ class CouncilEventBroadcaster:
             responding_to: Agent being responded to
             debate_round: Current debate round
         """
+        # Save to database if session context is set
+        if self.db and self.project_id and self.current_session_id:
+            try:
+                chat_message = ChatMessage(
+                    message_id=str(uuid.uuid4()),
+                    project_id=self.project_id,
+                    session_id=self.current_session_id,
+                    content=position,
+                    sender_type="agent",
+                    sender_name=agent_name,
+                    agent_id=agent_id,
+                    agent_role=agent_name,
+                    message_type="debate"
+                )
+                self.db.add(chat_message)
+                await self.db.commit()
+            except Exception as e:
+                logger.error(f"Failed to save debate message to database: {e}")
+        
+        # Broadcast via WebSocket
         await manager.send_debate_message(
             agent_id,
             agent_name,
@@ -164,6 +227,24 @@ class CouncilEventBroadcaster:
             consensus_level: unanimous, majority, split
             votes: Voting breakdown
         """
+        # Save to database if session context is set
+        if self.db and self.project_id and self.current_session_id:
+            try:
+                chat_message = ChatMessage(
+                    message_id=str(uuid.uuid4()),
+                    project_id=self.project_id,
+                    session_id=self.current_session_id,
+                    content=decision,
+                    sender_type="system",
+                    sender_name="Council",
+                    message_type="decision"
+                )
+                self.db.add(chat_message)
+                await self.db.commit()
+            except Exception as e:
+                logger.error(f"Failed to save decision to database: {e}")
+        
+        # Broadcast via WebSocket
         await manager.send_decision(decision, confidence, consensus_level, votes)
     
     async def broadcast_system_message(self, level: str, message: str):

@@ -107,14 +107,17 @@ export function useSessionStatus() {
 // ============================================================================
 
 /**
- * Fetch chat history
+ * Fetch chat history for a specific project
  */
-export function useChatHistory(limit: number = 50, skip: number = 0) {
+export function useChatHistory(projectId: number | null, limit: number = 100, skip: number = 0) {
   return useQuery({
-    queryKey: QUERY_KEYS.chat.history(limit, skip),
-    queryFn: () => api.chat.getHistory(limit, skip),
-    refetchInterval: 5000, // Refresh every 5 seconds
-    staleTime: 3000,
+    queryKey: [...QUERY_KEYS.chat.history(limit, skip), projectId],
+    queryFn: () => projectId ? api.chat.getHistory(projectId, limit, skip) : Promise.resolve({ total: 0, messages: [] }),
+    enabled: projectId !== null,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 60000, // Keep in cache for 1 minute
+    refetchOnMount: false, // Don't refetch on remount, use cached data
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 }
 

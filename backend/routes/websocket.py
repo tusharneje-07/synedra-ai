@@ -77,12 +77,9 @@ async def websocket_debate_stream(
                         })
                 
                 elif action == "ping":
-                    # Heartbeat
-                    await manager.send_personal_message(websocket, {
-                        "type": "system",
-                        "level": "info",
-                        "message": "pong"
-                    })
+                    # Heartbeat - no need to send pong, just keep connection alive
+                    # Connection is maintained by the websocket being open
+                    pass
                 
                 elif action == "trigger_agent":
                     # Trigger specific agent (will implement in Step 6)

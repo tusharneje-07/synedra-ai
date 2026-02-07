@@ -2,21 +2,25 @@
 Chat Service
 ===========
 
-Handles chat messages and @mention parsing.
+Handles chat messages and @mention parsing with database persistence.
 """
 
 import re
 import logging
-from typing import List, Tuple, Dict, Any
+import uuid
+from typing import List, Tuple, Dict, Any, Optional
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 
 from services.agent_status import agent_status_service
+from models.chat_message import ChatMessage
 
 logger = logging.getLogger(__name__)
 
 
 class ChatService:
-    """Service for chat message processing."""
+    """Service for chat message processing with database persistence."""
     
     # Agent mention patterns
     AGENT_ALIASES = {
@@ -29,9 +33,14 @@ class ChatService:
         "all": ["@all", "@everyone", "@council"]
     }
     
-    def __init__(self):
-        self.message_history: List[Dict[str, Any]] = []
-        self.message_counter = 0
+    def __init__(self, db: Optional[AsyncSession] = None):
+        """
+        Initialize chat service.
+        
+        Args:
+            db: Optional database session for persistence
+        """
+        self.db = db
     
     def parse_mentions(self, content: str) -> Tuple[List[str], str]:
         """
@@ -68,80 +77,133 @@ class ChatService:
         
         return list(mentioned_agents), content
     
-    def create_message(
+    async def create_message(
         self,
         content: str,
-        user_name: str = "User"
-    ) -> Dict[str, Any]:
+        project_id: int,
+        session_id: Optional[str] = None,
+        sender_type: str = "user",
+        sender_name: str = "User",
+        agent_id: Optional[str] = None,
+        agent_role: Optional[str] = None,
+        message_type: str = "chat"
+    ) -> ChatMessage:
         """
-        Create a chat message.
+        Create and save a chat message to database.
         
         Args:
             content: Message content
-            user_name: User's name
+            project_id: Project ID
+            session_id: Session ID (for council executions)
+            sender_type: 'user', 'agent', or 'system'
+            sender_name: Name of sender
+            agent_id: Agent ID if sender is agent
+            agent_role: Agent role if sender is agent
+            message_type: 'chat', 'thinking', 'debate', 'decision', 'status'
         
         Returns:
-            Message dictionary
+            Created ChatMessage instance
         """
-        self.message_counter += 1
-        message_id = f"msg_{self.message_counter}_{datetime.utcnow().timestamp()}"
+        # Generate unique message ID
+        message_id = str(uuid.uuid4())
         
-        # Parse mentions
-        mentioned_agents, cleaned_content = self.parse_mentions(content)
+        # Parse mentions if it's a user message
+        mentioned_agents = []
+        if sender_type == "user":
+            mentioned_agents, _ = self.parse_mentions(content)
         
-        # Create message
-        message = {
-            "id": message_id,
-            "content": content,
-            "user_name": user_name,
-            "timestamp": datetime.utcnow().isoformat(),
-            "mentioned_agents": [
-                {
-                    "agent_id": agent_id,
-                    "agent_name": agent_status_service.AGENTS[agent_id]["name"]
-                }
-                for agent_id in mentioned_agents
-                if agent_id in agent_status_service.AGENTS
-            ],
-            "is_agent_triggered": len(mentioned_agents) > 0,
-            "session_id": None
-        }
+        # Create message instance
+        message = ChatMessage(
+            message_id=message_id,
+            project_id=project_id,
+            session_id=session_id,
+            content=content,
+            sender_type=sender_type,
+            sender_name=sender_name,
+            agent_id=agent_id,
+            agent_role=agent_role,
+            message_type=message_type,
+            mentioned_agents=mentioned_agents if mentioned_agents else None,
+            is_agent_triggered=len(mentioned_agents) > 0
+        )
         
-        # Add to history
-        self.message_history.append(message)
-        
-        # Keep only last 100 messages
-        if len(self.message_history) > 100:
-            self.message_history.pop(0)
-        
-        logger.info(f"Chat message created: {message_id}, mentions: {mentioned_agents}")
+        # Save to database if db session available
+        if self.db:
+            self.db.add(message)
+            await self.db.commit()
+            await self.db.refresh(message)
+            
+            logger.info(
+                f"Chat message saved: {message_id}, "
+                f"project={project_id}, session={session_id}, "
+                f"sender={sender_type}/{sender_name}"
+            )
         
         return message
     
-    def get_message_history(
+    async def get_message_history(
         self,
-        limit: int = 50,
+        project_id: int,
+        session_id: Optional[str] = None,
+        limit: int = 100,
         skip: int = 0
     ) -> Dict[str, Any]:
         """
-        Get chat message history.
+        Get chat message history from database.
         
         Args:
+            project_id: Project ID to filter by
+            session_id: Optional session ID to filter by
             limit: Maximum number of messages to return
             skip: Number of messages to skip
         
         Returns:
             Dictionary with total count and messages
         """
-        total = len(self.message_history)
+        if not self.db:
+            return {"total": 0, "messages": []}
         
-        # Get paginated messages (newest first)
-        messages = list(reversed(self.message_history))
-        paginated = messages[skip:skip + limit]
+        # Build query
+        query = select(ChatMessage).where(ChatMessage.project_id == project_id)
+        
+        if session_id:
+            query = query.where(ChatMessage.session_id == session_id)
+        
+        # Get total count
+        count_query = select(ChatMessage).where(ChatMessage.project_id == project_id)
+        if session_id:
+            count_query = count_query.where(ChatMessage.session_id == session_id)
+        
+        result = await self.db.execute(count_query)
+        total = len(result.scalars().all())
+        
+        # Get paginated messages (chronological order)
+        query = query.order_by(ChatMessage.created_at.asc()).offset(skip).limit(limit)
+        
+        result = await self.db.execute(query)
+        messages = result.scalars().all()
+        
+        # Convert to dict
+        message_list = [
+            {
+                "id": msg.message_id,
+                "content": msg.content,
+                "sender_type": msg.sender_type,
+                "sender_name": msg.sender_name,
+                "agent_id": msg.agent_id,
+                "agent_role": msg.agent_role,
+                "message_type": msg.message_type,
+                "mentioned_agents": msg.mentioned_agents or [],
+                "is_agent_triggered": msg.is_agent_triggered,
+                "timestamp": msg.created_at.isoformat(),
+                "session_id": msg.session_id
+            }
+            for msg in messages
+        ]
         
         return {
             "total": total,
-            "messages": paginated
+            "messages": message_list
         }
     
     def get_prompt_for_agents(
@@ -181,7 +243,3 @@ class ChatService:
             prompt = f"[Question for: {', '.join(agent_names)}]\n\n{clean_content}"
         
         return prompt
-
-
-# Global service instance
-chat_service = ChatService()

@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useSendChatMessage } from "@/hooks/useAPI";
 import { useToast } from "@/hooks/use-toast";
 
-const ChatInput = () => {
+interface ChatInputProps {
+  projectId: number;
+}
+
+const ChatInput = ({ projectId }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const sendMessageMutation = useSendChatMessage();
   const { toast } = useToast();
@@ -14,6 +18,7 @@ const ChatInput = () => {
       try {
         await sendMessageMutation.mutateAsync({
           content: message,
+          project_id: projectId,
           user_name: "User",
         });
         setMessage("");

@@ -98,9 +98,9 @@ export const api = {
 
   // Chat
   chat: {
-    getHistory: (limit: number = 50, skip: number = 0) =>
+    getHistory: (projectId: number, limit: number = 100, skip: number = 0, sessionId?: string) =>
       apiFetch<ChatHistoryResponse>(
-        `/chat/history?limit=${limit}&skip=${skip}`
+        `/chat/history?project_id=${projectId}&limit=${limit}&skip=${skip}${sessionId ? `&session_id=${sessionId}` : ''}`
       ),
     
     sendMessage: (message: ChatMessageCreate) =>

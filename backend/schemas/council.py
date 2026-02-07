@@ -12,6 +12,7 @@ from typing import Optional, List, Dict, Any
 class CouncilExecutionRequest(BaseModel):
     """Request to execute council session."""
     prompt: str = Field(..., min_length=1, description="Topic or question for the council to discuss")
+    project_id: int = Field(..., description="Project ID this council session belongs to")
     trigger_agents: Optional[List[str]] = Field(
         None,
         description="Specific agents to trigger. If None, all agents participate."
