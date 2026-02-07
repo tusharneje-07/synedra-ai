@@ -63,9 +63,9 @@ You MUST respond in valid JSON format with this structure:
   "trending_elements": ["element 1", "element 2"],
   "score": <number 0-100>,
   "vote": "approve/conditional/reject",
-  "recommendation": "brief recommendation",
-  "reasoning": "detailed reasoning for your decision",
-  "concerns": "any concerns about trend timing or relevance"
+  "recommendation": "Your strategic recommendation in 2-3 detailed sentences explaining what should be done and why",
+  "reasoning": "Your complete analytical reasoning in paragraph form (minimum 4-5 sentences). Explain your thinking process, what factors you considered, why you reached this conclusion, and what evidence supports your decision. Be thorough and professional.",
+  "concerns": "Any concerns about trend timing or relevance in 2-3 sentences"
 }"""
         
         # Build the analysis prompt
@@ -120,9 +120,11 @@ Remember: You're aggressive about viral potential. Push for engagement and reach
             
         except json.JSONDecodeError as e:
             logger.error(f"{self.name}: Failed to parse JSON response: {e}")
+            logger.error(f"{self.name}: Raw response was: {response[:500] if len(response) > 500 else response}")
             return self._get_fallback_response()
         except Exception as e:
             logger.error(f"{self.name}: Error during analysis: {e}")
+            logger.error(f"{self.name}: Full error details:", exc_info=True)
             return self._get_fallback_response()
     
     def _get_fallback_response(self) -> Dict[str, Any]:
@@ -130,19 +132,19 @@ Remember: You're aggressive about viral potential. Push for engagement and reach
         return {
             'agent_name': self.name,
             'agent_role': self.role,
-            'trend_analysis': 'Unable to complete trend analysis',
+            'trend_analysis': 'Unable to complete trend analysis due to technical error',
             'viral_probability': 50,
             'trend_lifespan': 'unknown',
-            'why_it_will_work': ['Analysis incomplete'],
-            'content_angle': 'Standard approach',
+            'why_it_will_work': ['Analysis incomplete due to technical issue'],
+            'content_angle': 'Standard approach recommended',
             'suggested_format': 'post',
             'hook_line': 'Check this out',
             'trending_elements': [],
             'score': 50,
             'vote': 'conditional',
-            'recommendation': 'Unable to complete full analysis',
-            'reasoning': 'Technical error during trend analysis',
-            'concerns': 'Analysis incomplete - manual review needed'
+            'recommendation': 'Due to technical difficulties, I recommend proceeding with caution. This content should be manually reviewed for trend relevance and viral potential before publishing.',
+            'reasoning': 'I encountered a technical error while analyzing this content for trend alignment and viral potential. Without completing the full analysis, I cannot provide a confident assessment of trending topics, optimal formats, or engagement hooks. The viral probability score of 50 represents uncertainty rather than measured potential. I recommend conducting a manual trend analysis before proceeding, particularly checking current platform trends, trending audio/formats, and competitor content performance.',
+            'concerns': 'Technical error prevented complete trend analysis. Manual review required to assess viral potential, trend timing, and format optimization opportunities.'
         }
     
     def respond_to_debate(self, context: Dict, my_previous: Dict, others_views: Dict) -> Dict[str, Any]:
@@ -393,33 +395,34 @@ Return JSON:
         """
         logger.info(f"{self.name}: Quick gut reaction")
         
-        system_prompt = f"""You are {self.role} giving a QUICK GUT REACTION in a fast-paced meeting.
+        system_prompt = f"""You are {self.role} providing your initial analysis.
 
-This is your INSTANT, INSTINCT-DRIVEN first thought. Be:
-- BRIEF (2-3 sentences max)
-- DIRECT and passionate
-- Fast decision-maker
-- No long analysis - just your instant take
+Provide a thorough but focused assessment including:
+- Your immediate reaction and gut feeling
+- Strategic recommendation (2-3 sentences)
+- Detailed reasoning (4-5 sentences explaining your thinking)
+- Specific concerns if any
 
-This is like blurting out your first reaction when you hear an idea.
-
-Respond in JSON with your quick take."""
+You MUST respond in valid JSON format. All fields are required."""
         
         prompt = f"""
 CONTEXT:
 {json.dumps(context, indent=2)}
 
-Give your INSTANT REACTION. What's your gut feeling? Quick!
-
-Return JSON:
+Provide your analysis in this EXACT JSON format:
 {{
   "agent_name": "{self.name}",
   "agent_role": "{self.role}",
-  "quick_take": "Your instant 2-3 sentence reaction",
+  "quick_take": "Your instant 2-3 sentence reaction to this content",
+  "recommendation": "Your strategic recommendation in 2-3 detailed sentences explaining what should be done",
+  "reasoning": "Your complete analytical reasoning in paragraph form (minimum 4-5 sentences). Explain your thinking process, what factors you considered, and why you reached this conclusion.",
   "vote": "approve/conditional/reject",
-  "score": 0-100,
-  "gut_feeling": "excited/cautious/concerned/optimistic"
-}}"""
+  "score": 75,
+  "gut_feeling": "excited/cautious/concerned/optimistic",
+  "concerns": "Any specific concerns in 2-3 sentences, or empty string if none"
+}}
+
+Remember: All text fields must be complete sentences. Numbers must not have quotes."""
         
         try:
             response = self.llm.simple_prompt(
@@ -433,11 +436,16 @@ Return JSON:
             return result
         except Exception as e:
             logger.error(f"{self.name}: Error in quick reaction: {e}")
+            logger.error(f"{self.name}: Quick reaction error details:", exc_info=True)
             return {
                 'agent_name': self.name,
-                'quick_take': 'Error in reaction',
+                'agent_role': self.role,
+                'quick_take': 'Technical error during analysis',
+                'recommendation': 'Unable to provide recommendation due to technical error. Manual review required.',
+                'reasoning': 'A technical error prevented me from completing my initial trend analysis. Without proper analysis, I cannot assess viral potential or trend alignment. Manual review recommended.',
                 'vote': 'conditional',
-                'score': 50
+                'score': 50,
+                'concerns': 'Technical error prevented analysis'
             }
     
     def jump_in_conversation(self, context: Dict, conversation_history: Dict) -> Dict[str, Any]:

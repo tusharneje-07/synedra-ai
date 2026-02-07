@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Response</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        #output {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Debate API Response</h1>
+    <p>Enter a post_input_id that already has a completed debate (e.g., 28 or 29):</p>
+    <input type="number" id="postId" value="29" style="padding: 8px; font-size: 16px; width: 100px;">
+    <button onclick="testAPI()">Test Get Debates</button>
+    <button onclick="clearOutput()">Clear</button>
+    <hr>
+    <div id="output">Response will appear here...</div>
+
+    <script>
+        async function testAPI() {
+            const postId = document.getElementById('postId').value;
+            const output = document.getElementById('output');
+            
+            try {
+                output.textContent = 'Loading...';
+                
+                const response = await fetch(`http://localhost:5000/api/debates/${postId}`);
+                const data = await response.json();
+                
+                output.textContent = 'RESPONSE:\n\n' + JSON.stringify(data, null, 2);
+                
+                // Also log to console
+                console.log('API Response:', data);
+                
+                // Check for conversation_log
+                if (data.debates && data.debates.length > 0) {
+                    console.log('First debate:', data.debates[0]);
+                }
+                
+            } catch (error) {
+                output.textContent = 'ERROR:\n\n' + error.message;
+                console.error('Error:', error);
+            }
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').textContent = 'Response will appear here...';
+        }
+    </script>
+</body>
+</html>

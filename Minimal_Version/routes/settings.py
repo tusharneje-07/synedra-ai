@@ -3,10 +3,11 @@ Settings Routes - API endpoints for managing settings
 """
 
 from flask import Blueprint, jsonify, request
-from database import get_db
 import json
+import logging
 
 settings_bp = Blueprint('settings', __name__)
+logger = logging.getLogger(__name__)
 
 # ===== AGENT CONFIGURATION =====
 
@@ -65,32 +66,33 @@ def update_agent(agent_name):
 
 # ===== API KEY POOL =====
 
+import os
+from pathlib import Path
+
+API_KEYS_FILE = Path('apiconfig/apis.json')
+
+def load_api_keys():
+    """Load API keys from JSON file"""
+    if not API_KEYS_FILE.exists():
+        API_KEYS_FILE.parent.mkdir(exist_ok=True)
+        return []
+    
+    try:
+        with open(API_KEYS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_api_keys(keys):
+    """Save API keys to JSON file"""
+    API_KEYS_FILE.parent.mkdir(exist_ok=True)
+    with open(API_KEYS_FILE, 'w') as f:
+        json.dump(keys, f, indent=2)
+
 @settings_bp.route('/api-keys', methods=['GET'])
 def get_api_keys():
     """Get all API keys in the pool"""
-    db = get_db()
-    cursor = db.cursor()
-    
-    # Create api_keys table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            api_key TEXT NOT NULL,
-            active BOOLEAN DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    cursor.execute('SELECT id, api_key, active FROM api_keys ORDER BY id')
-    rows = cursor.fetchall()
-    
-    keys = []
-    for row in rows:
-        keys.append({
-            'id': row[0],
-            'key': row[1],
-            'active': bool(row[2])
-        })
+    keys = load_api_keys()
     
     return jsonify({
         'success': True,
@@ -102,6 +104,7 @@ def add_api_key():
     """Add a new API key to the pool"""
     data = request.json
     api_key = data.get('api_key')
+    key_name = data.get('name', 'Unnamed Key')
     
     if not api_key:
         return jsonify({
@@ -109,45 +112,45 @@ def add_api_key():
             'error': 'API key is required'
         }), 400
     
-    db = get_db()
-    cursor = db.cursor()
-    
-    # Create table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            api_key TEXT NOT NULL,
-            active BOOLEAN DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    keys = load_api_keys()
     
     # Check if key already exists
-    cursor.execute('SELECT id FROM api_keys WHERE api_key = ?', (api_key,))
-    if cursor.fetchone():
+    if any(k['key'] == api_key for k in keys):
         return jsonify({
             'success': False,
             'error': 'API key already exists'
         }), 400
     
-    cursor.execute('INSERT INTO api_keys (api_key, active) VALUES (?, 1)', (api_key,))
-    db.commit()
+    # Generate new ID
+    new_id = max([k['id'] for k in keys], default=0) + 1
+    
+    # Add new key
+    new_key = {
+        'id': new_id,
+        'name': key_name,
+        'key': api_key,
+        'active': True
+    }
+    
+    keys.append(new_key)
+    save_api_keys(keys)
     
     return jsonify({
         'success': True,
-        'message': 'API key added successfully'
+        'message': 'API key added successfully',
+        'key': new_key
     })
 
 @settings_bp.route('/api-keys/<int:key_id>', methods=['DELETE'])
 def remove_api_key(key_id):
     """Remove an API key from the pool"""
-    db = get_db()
-    cursor = db.cursor()
+    keys = load_api_keys()
     
-    cursor.execute('DELETE FROM api_keys WHERE id = ?', (key_id,))
-    db.commit()
+    # Filter out the key to remove
+    updated_keys = [k for k in keys if k['id'] != key_id]
     
-    if cursor.rowcount > 0:
+    if len(updated_keys) < len(keys):
+        save_api_keys(updated_keys)
         return jsonify({
             'success': True,
             'message': 'API key removed successfully'
@@ -158,31 +161,64 @@ def remove_api_key(key_id):
             'error': 'API key not found'
         }), 404
 
+@settings_bp.route('/api-keys/test-all', methods=['POST'])
+def test_all_api_keys():
+    """Test all API keys and update their active status"""
+    # Use the api_manager function which properly tests and updates status
+    from utils.api_manager import test_all_keys_and_update_status
+    
+    logger.info("Testing all API keys from Settings...")
+    result = test_all_keys_and_update_status()
+    
+    # Reload keys to get updated status
+    updated_keys = load_api_keys()
+    
+    if result['success']:
+        return jsonify({
+            'success': True,
+            'message': result['message'],
+            'active_count': result['active_count'],
+            'total_count': result['total_count'],
+            'results': result['results'],
+            'keys': updated_keys
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': result.get('message', 'Failed to test API keys'),
+            'keys': updated_keys
+        })
+
 # ===== MODEL SELECTION =====
+
+MODEL_SETTINGS_FILE = Path('config/model_settings.json')
+
+def load_model_settings():
+    """Load model settings from JSON file"""
+    if not MODEL_SETTINGS_FILE.exists():
+        MODEL_SETTINGS_FILE.parent.mkdir(exist_ok=True)
+        return {'current_model': 'llama-3.3-70b-versatile'}
+    
+    try:
+        with open(MODEL_SETTINGS_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {'current_model': 'llama-3.3-70b-versatile'}
+
+def save_model_settings(settings):
+    """Save model settings to JSON file"""
+    MODEL_SETTINGS_FILE.parent.mkdir(exist_ok=True)
+    with open(MODEL_SETTINGS_FILE, 'w') as f:
+        json.dump(settings, f, indent=2)
 
 @settings_bp.route('/model', methods=['GET'])
 def get_model():
     """Get current model selection"""
-    db = get_db()
-    cursor = db.cursor()
-    
-    # Create settings table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    cursor.execute('SELECT value FROM settings WHERE key = ?', ('current_model',))
-    row = cursor.fetchone()
-    
-    model = row[0] if row else 'llama-3.3-70b-versatile'
+    settings = load_model_settings()
     
     return jsonify({
         'success': True,
-        'model': model
+        'model': settings.get('current_model', 'llama-3.3-70b-versatile')
     })
 
 @settings_bp.route('/model', methods=['PUT'])
@@ -197,23 +233,9 @@ def update_model():
             'error': 'Model is required'
         }), 400
     
-    db = get_db()
-    cursor = db.cursor()
-    
-    # Create table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    cursor.execute('''
-        INSERT OR REPLACE INTO settings (key, value, updated_at)
-        VALUES ('current_model', ?, CURRENT_TIMESTAMP)
-    ''', (model,))
-    db.commit()
+    settings = load_model_settings()
+    settings['current_model'] = model
+    save_model_settings(settings)
     
     return jsonify({
         'success': True,

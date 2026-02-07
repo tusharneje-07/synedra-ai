@@ -81,9 +81,9 @@ You MUST respond in valid JSON format with this structure:
   "interactive_suggestions": ["suggestion 1", "suggestion 2"],
   "emotional_triggers": ["trigger 1", "trigger 2"],
   "vote": "approve/conditional/reject",
-  "recommendation": "brief recommendation",
-  "reasoning": "detailed engagement reasoning",
-  "concerns": "any engagement concerns",
+  "recommendation": "Your engagement optimization recommendation in 2-3 detailed sentences explaining how to maximize meaningful interactions and community participation",
+  "reasoning": "Your complete engagement analysis in paragraph form (minimum 4-5 sentences). Explain what engagement mechanics you identified, why this content will or will not drive conversations, what psychological triggers you evaluated, and how you calculated the engagement scores. Be thorough and psychology-focused.",
+  "concerns": "Any engagement concerns in 2-3 sentences explaining potential barriers to community interaction",
   "optimization_tips": ["tip 1", "tip 2", "tip 3"]
 }"""
         
@@ -188,15 +188,15 @@ Vote:
             'emotional_hook_score': 50,
             'interactive_elements_score': 50,
             'overall_engagement_score': 50,
-            'conversation_starters': ['Analysis incomplete'],
-            'interactive_suggestions': ['Complete engagement analysis'],
-            'emotional_triggers': ['Unknown'],
+            'conversation_starters': ['Analysis incomplete - unable to identify conversation triggers'],
+            'interactive_suggestions': ['Complete engagement analysis to identify interactive opportunities'],
+            'emotional_triggers': ['Unknown due to technical error'],
             'score': 50,
             'vote': 'conditional',
-            'recommendation': 'Manual engagement review required',
-            'reasoning': 'Technical error during engagement analysis',
-            'concerns': 'Engagement analysis incomplete',
-            'optimization_tips': ['Complete full engagement analysis']
+            'recommendation': 'I recommend conditional approval pending manual engagement review. Technical difficulties prevented analysis of comment triggers, shareability factors, and emotional hooks. Review needed to optimize community interaction potential.',
+            'reasoning': 'A technical error interrupted my engagement analysis, preventing me from evaluating critical elements that drive community interaction including comment trigger strength, shareability potential, relatability factors, emotional hooks, and interactive element opportunities. Without completing this analysis, I cannot confidently predict if this content will generate meaningful engagement or fall flat with our audience. The neutral score of 50 reflects uncertainty rather than measured engagement potential. Publishing content without understanding its engagement mechanics risks poor performance, low community participation, and missed opportunities for building audience relationships. I recommend manual review focusing on conversation starters, emotional resonance, shareability factors, and interactive elements that encourage audience participation.',
+            'concerns': 'Engagement analysis incomplete due to technical error. Cannot verify comment triggers, shareability potential, or emotional hook effectiveness. Manual community engagement review required to maximize interaction potential.',
+            'optimization_tips': ['Complete full engagement analysis', 'Manual review of conversation triggers', 'Test emotional resonance with sample audience', 'Identify and strengthen interactive elements']
         }
 
     def respond_to_debate(self, context: Dict, my_previous: Dict, others_views: Dict) -> Dict[str, Any]:
@@ -301,33 +301,34 @@ Make your FINAL CASE - this is your last chance!
         """
         logger.info(f"{self.name}: Quick gut reaction")
         
-        system_prompt = f"""You are {self.role} giving a QUICK GUT REACTION in a fast-paced meeting.
+        system_prompt = f"""You are {self.role} providing your initial engagement analysis.
 
-This is your INSTANT, INSTINCT-DRIVEN first thought. Be:
-- BRIEF (2-3 sentences max)
-- DIRECT and passionate
-- Fast decision-maker
-- No long analysis - just your instant take
+Provide a thorough but focused assessment including:
+- Your immediate reaction and gut feeling
+- Engagement recommendation (2-3 sentences)
+- Detailed reasoning (4-5 sentences explaining your community analysis)
+- Specific concerns if any
 
-This is like blurting out your first reaction when you hear an idea.
-
-Respond in JSON with your quick take."""
+You MUST respond in valid JSON format. All fields are required."""
         
         prompt = f"""
 CONTEXT:
 {json.dumps(context, indent=2)}
 
-Give your INSTANT REACTION. What's your gut feeling? Quick!
-
-Return JSON:
+Provide your engagement analysis in this EXACT JSON format:
 {{
   "agent_name": "{self.name}",
   "agent_role": "{self.role}",
-  "quick_take": "Your instant 2-3 sentence reaction",
+  "quick_take": "Your instant 2-3 sentence engagement assessment",
+  "recommendation": "Your engagement optimization recommendation in 2-3 detailed sentences",
+  "reasoning": "Your complete engagement analysis in paragraph form (minimum 4-5 sentences). Explain what you evaluated and why.",
   "vote": "approve/conditional/reject",
-  "score": 0-100,
-  "gut_feeling": "excited/cautious/concerned/optimistic"
-}}"""
+  "score": 70,
+  "gut_feeling": "excited/cautious/concerned/optimistic",
+  "concerns": "Any engagement concerns in 2-3 sentences, or empty string if none"
+}}
+
+Remember: All text fields must be complete sentences. Numbers must not have quotes."""
         
         try:
             response = self.llm.simple_prompt(
@@ -343,9 +344,13 @@ Return JSON:
             logger.error(f"{self.name}: Error in quick reaction: {e}")
             return {
                 'agent_name': self.name,
-                'quick_take': 'Error in reaction',
+                'agent_role': self.role,
+                'quick_take': 'Technical error during analysis',
+                'recommendation': 'Unable to provide engagement recommendation due to technical error. Manual community analysis required.',
+                'reasoning': 'A technical error prevented me from completing my initial engagement analysis. Without proper evaluation of conversation triggers and community interaction potential, I cannot provide confident predictions. Manual review recommended.',
                 'vote': 'conditional',
-                'score': 50
+                'score': 50,
+                'concerns': 'Technical error prevented engagement assessment'
             }
     
     def jump_in_conversation(self, context: Dict, conversation_history: Dict) -> Dict[str, Any]:

@@ -74,9 +74,9 @@ You MUST respond in valid JSON format with this structure:
   "prohibited_content_flags": ["flag 1", "flag 2"],
   "compliance_score": <number 0-100>,
   "vote": "approve/conditional/reject",
-  "recommendation": "brief recommendation",
-  "reasoning": "detailed compliance reasoning",
-  "concerns": "any compliance concerns",
+  "recommendation": "Your compliance recommendation in 2-3 detailed sentences explaining what actions are needed and why they matter for legal and platform compliance",
+  "reasoning": "Your complete compliance analysis in paragraph form (minimum 4-5 sentences). Explain which regulations you reviewed, what compliance issues you identified or ruled out, why your assessment is correct, and what legal or platform risks you considered. Be specific and thorough.",
+  "concerns": "Any compliance concerns in 2-3 sentences explaining specific legal or policy risks",
   "required_changes": ["change 1", "change 2"]
 }"""
         
@@ -167,20 +167,20 @@ Score 0-100:
         return {
             'agent_name': self.name,
             'agent_role': self.role,
-            'compliance_analysis': 'Unable to complete compliance analysis',
+            'compliance_analysis': 'Unable to complete compliance analysis due to technical error',
             'platform_guidelines_met': False,
             'legal_requirements_met': False,
-            'required_disclosures': ['Manual compliance review required'],
-            'regulatory_concerns': ['Analysis incomplete'],
+            'required_disclosures': ['Manual compliance review required - technical error occurred'],
+            'regulatory_concerns': ['Analysis incomplete - cannot verify compliance'],
             'copyright_risks': [],
             'prohibited_content_flags': [],
             'compliance_score': 50,
             'score': 50,
             'vote': 'reject',
-            'recommendation': 'Manual compliance review required',
-            'reasoning': 'Technical error during compliance analysis - manual review mandatory',
-            'concerns': 'Compliance analysis incomplete - cannot approve without full review',
-            'required_changes': ['Complete full compliance analysis']
+            'recommendation': 'I must reject this content due to incomplete compliance analysis. Technical difficulties prevented me from verifying platform guidelines, legal requirements, and required disclosures. Manual legal review is mandatory before proceeding.',
+            'reasoning': 'A technical error interrupted my compliance analysis, preventing me from completing essential checks for platform policies, FTC disclosure requirements, copyright risks, and regulatory compliance. Without confirming that this content meets all legal and platform standards, I cannot approve it for publication. The compliance score of 50 reflects uncertainty, not measured compliance. Publishing without full compliance verification exposes the brand to potential legal liability, platform penalties, or account suspension. I strongly recommend conducting a thorough manual compliance review covering all platform-specific guidelines, advertising disclosure requirements, and relevant legal regulations.',
+            'concerns': 'Compliance analysis incomplete due to technical error. Cannot verify platform policy compliance, legal requirements, or disclosure obligations. Manual legal review is mandatory to prevent potential violations.',
+            'required_changes': ['Complete full compliance analysis', 'Manual legal and policy review', 'Verify all required disclosures']
         }
 
     def respond_to_debate(self, context: Dict, my_previous: Dict, others_views: Dict) -> Dict[str, Any]:
@@ -285,33 +285,34 @@ Make your FINAL CASE - this is your last chance!
         """
         logger.info(f"{self.name}: Quick gut reaction")
         
-        system_prompt = f"""You are {self.role} giving a QUICK GUT REACTION in a fast-paced meeting.
+        system_prompt = f"""You are {self.role} providing your initial compliance analysis.
 
-This is your INSTANT, INSTINCT-DRIVEN first thought. Be:
-- BRIEF (2-3 sentences max)
-- DIRECT and passionate
-- Fast decision-maker
-- No long analysis - just your instant take
+Provide a thorough but focused assessment including:
+- Your immediate reaction and gut feeling
+- Compliance recommendation (2-3 sentences)
+- Detailed reasoning (4-5 sentences explaining your analysis)
+- Specific concerns if any
 
-This is like blurting out your first reaction when you hear an idea.
-
-Respond in JSON with your quick take."""
+You MUST respond in valid JSON format. All fields are required."""
         
         prompt = f"""
 CONTEXT:
 {json.dumps(context, indent=2)}
 
-Give your INSTANT REACTION. What's your gut feeling? Quick!
-
-Return JSON:
+Provide your compliance analysis in this EXACT JSON format:
 {{
   "agent_name": "{self.name}",
   "agent_role": "{self.role}",
-  "quick_take": "Your instant 2-3 sentence reaction",
+  "quick_take": "Your instant 2-3 sentence compliance reaction",
+  "recommendation": "Your compliance recommendation in 2-3 detailed sentences",
+  "reasoning": "Your complete compliance analysis in paragraph form (minimum 4-5 sentences). Explain what you checked and why.",
   "vote": "approve/conditional/reject",
-  "score": 0-100,
-  "gut_feeling": "excited/cautious/concerned/optimistic"
-}}"""
+  "score": 90,
+  "gut_feeling": "excited/cautious/concerned/optimistic",
+  "concerns": "Any compliance concerns in 2-3 sentences, or empty string if none"
+}}
+
+Remember: All text fields must be complete sentences. Numbers must not have quotes."""
         
         try:
             response = self.llm.simple_prompt(
@@ -327,9 +328,13 @@ Return JSON:
             logger.error(f"{self.name}: Error in quick reaction: {e}")
             return {
                 'agent_name': self.name,
-                'quick_take': 'Error in reaction',
-                'vote': 'conditional',
-                'score': 50
+                'agent_role': self.role,
+                'quick_take': 'Technical error during analysis',
+                'recommendation': 'Unable to provide compliance recommendation due to technical error. Manual legal review required.',
+                'reasoning': 'A technical error prevented me from completing my initial compliance analysis. Without proper verification of platform guidelines and legal requirements, I cannot approve this content. Manual compliance review is mandatory.',
+                'vote': 'reject',
+                'score': 50,
+                'concerns': 'Technical error prevented compliance verification'
             }
     
     def jump_in_conversation(self, context: Dict, conversation_history: Dict) -> Dict[str, Any]:

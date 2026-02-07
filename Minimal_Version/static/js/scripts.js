@@ -112,6 +112,11 @@ function updateLoadingStatus(message, agentStatuses = null) {
         statusEl.textContent = message;
     }
     
+    const currentActivityEl = document.getElementById('current-activity');
+    if (currentActivityEl) {
+        currentActivityEl.textContent = message;
+    }
+    
     if (agentStatuses) {
         const agentStatusEl = document.getElementById('agent-status');
         if (agentStatusEl) {
@@ -128,6 +133,62 @@ function updateLoadingStatus(message, agentStatuses = null) {
             `).join('');
         }
     }
+}
+
+function updateApiKeyStatus(keyName, isRotation = false) {
+    const apiKeyStatusEl = document.getElementById('api-key-status');
+    if (!apiKeyStatusEl) return;
+    
+    if (isRotation) {
+        apiKeyStatusEl.innerHTML = `
+            <span class="text-yellow-400">⚠️ Rotating to: ${keyName}</span>
+        `;
+        // Add to conversation log
+        addDebateMessage('SYSTEM', 'API Key Rotation', `Switched to API key: ${keyName}`, 'warning');
+    } else {
+        apiKeyStatusEl.innerHTML = `
+            <span class="text-green-400">✓ Using: ${keyName}</span>
+        `;
+    }
+}
+
+function addDebateMessage(agentName, messageType, content, style = 'default') {
+    const conversationEl = document.getElementById('debate-conversation');
+    if (!conversationEl) return;
+    
+    // Remove "waiting" message on first real message
+    const waitingMsg = conversationEl.querySelector('.italic');
+    if (waitingMsg) {
+        conversationEl.innerHTML = '';
+    }
+    
+    const agentColors = {
+        'TrendAgent': 'text-blue-400 border-blue-500/30 bg-blue-500/5',
+        'BrandAgent': 'text-purple-400 border-purple-500/30 bg-purple-500/5',
+        'ComplianceAgent': 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5',
+        'RiskAgent': 'text-red-400 border-red-500/30 bg-red-500/5',
+        'EngagementAgent': 'text-green-400 border-green-500/30 bg-green-500/5',
+        'CMOAgent': 'text-indigo-400 border-indigo-500/30 bg-indigo-500/5',
+        'SYSTEM': 'text-gray-400 border-gray-500/30 bg-gray-500/5'
+    };
+    
+    const colorClass = agentColors[agentName] || 'text-gray-400 border-border bg-muted/50';
+    
+    const messageEl = document.createElement('div');
+    messageEl.className = `rounded-lg border p-3 ${colorClass} text-sm`;
+    messageEl.innerHTML = `
+        <div class="flex items-start gap-2">
+            <span class="font-semibold flex-shrink-0">${agentName}:</span>
+            <div class="flex-1">
+                <div class="font-medium">${messageType}</div>
+                <div class="text-xs mt-1 text-muted-foreground">${content}</div>
+            </div>
+        </div>
+    `;
+    
+    conversationEl.appendChild(messageEl);
+    // Auto-scroll to bottom
+    conversationEl.scrollTop = conversationEl.scrollHeight;
 }
 
 // Enhanced live agent debate simulation
@@ -213,12 +274,26 @@ function simulateAgentThinking(agentKey, duration = 10000) {
             
             currentPhrase++;
             if (currentPhrase < phrases.length) {
-                setTimeout(updatePhrase, interval);
+                const timeout = setTimeout(updatePhrase, interval);
+                debateSimulationTimeouts.push(timeout);
             }
         }
     };
     
     updatePhrase();
+}
+
+// Store intervals so we can clear them
+let debateSimulationIntervals = [];
+let debateSimulationTimeouts = [];
+
+function stopDebateSimulation() {
+    // Clear all intervals and timeouts
+    debateSimulationIntervals.forEach(interval => clearInterval(interval));
+    debateSimulationTimeouts.forEach(timeout => clearTimeout(timeout));
+    debateSimulationIntervals = [];
+    debateSimulationTimeouts = [];
+    console.log('✋ Stopped debate simulation - using real data');
 }
 
 function simulateDebateProgress(totalDuration = 50000) {
@@ -247,18 +322,20 @@ function simulateDebateProgress(totalDuration = 50000) {
     ];
     
     activities.forEach(activity => {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             if (currentActivity) {
                 currentActivity.textContent = activity.text;
             }
         }, activity.delay);
+        debateSimulationTimeouts.push(timeout);
     });
     
     // Start each agent's thinking simulation
     agents.forEach(agent => {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             simulateAgentThinking(agent.key, agent.duration);
         }, agent.delay);
+        debateSimulationTimeouts.push(timeout);
     });
     
     // Animate progress bar
@@ -273,6 +350,7 @@ function simulateDebateProgress(totalDuration = 50000) {
             progressBar.style.width = `${progress}%`;
         }
     }, 200);
+    debateSimulationIntervals.push(progressInterval);
 }
 
 // ========================================
@@ -499,7 +577,32 @@ function setupPostForm() {
             
             const postInputId = createData.post_input_id;
             
+            // Update modal to show API key check
+            updateLoadingStatus('Checking API keys...');
+            
+            // Fetch and display current API key IMMEDIATELY
+            try {
+                const apiKeyResponse = await fetch(`${API_BASE}/debates/current-api-key`);
+                const apiKeyData = await apiKeyResponse.json();
+                if (apiKeyData.success && apiKeyData.api_key_name) {
+                    console.log('🔑 Current API Key:', apiKeyData.api_key_name);
+                    updateApiKeyStatus(apiKeyData.api_key_name, false);
+                    updateLoadingStatus('Using API Key: ' + apiKeyData.api_key_name);
+                    // Add to conversation log
+                    addDebateMessage('SYSTEM', 'API Key Selected', `Using: ${apiKeyData.api_key_name}`);
+                } else {
+                    updateApiKeyStatus('No active key', false);
+                    addDebateMessage('SYSTEM', 'Warning', 'No active API key found');
+                }
+            } catch (error) {
+                console.warn('Could not fetch current API key:', error);
+                updateApiKeyStatus('Checking...', false);
+            }
+            
             // Start debate process
+            updateLoadingStatus('Starting debate process...');
+            addDebateMessage('SYSTEM', 'Debate Starting', 'Initializing 6-agent council debate...');
+            
             const debateResponse = await fetch(`${API_BASE}/debates/start`, {
                 method: 'POST',
                 headers: {
@@ -510,14 +613,64 @@ function setupPostForm() {
             
             const debateData = await debateResponse.json();
             
-            showLoadingModal(false);
+            // Debug logging
+            console.log('📥 Received debate response:', debateData);
+            console.log('API Key Name:', debateData.api_key_name);
+            console.log('Conversation Log Length:', debateData.conversation_log ? debateData.conversation_log.length : 0);
             
             if (debateData.success) {
+                // STOP the fake simulation immediately
+                stopDebateSimulation();
+                
+                // Keep modal open to display real results
+                updateLoadingStatus('Debate Complete! ✅');
+                
+                // Update progress bar to 100%
+                const progressBar = document.getElementById('progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = '100%';
+                }
+                
+                // Display API key that was used
+                if (debateData.api_key_name) {
+                    console.log('Displaying API key:', debateData.api_key_name);
+                    updateApiKeyStatus(debateData.api_key_name, false);
+                }
+                
+                // Display conversation log
+                if (debateData.conversation_log && debateData.conversation_log.length > 0) {
+                    console.log('Displaying conversation log:', debateData.conversation_log.length, 'messages');
+                    debateData.conversation_log.forEach(msg => {
+                        if (msg.type === 'system') {
+                            addDebateMessage(msg.agent, 'system', msg.message);
+                        } else if (msg.type === 'phase') {
+                            addDebateMessage(msg.agent, 'phase', msg.message);
+                        } else if (msg.type === 'thinking') {
+                            addDebateMessage(msg.agent, 'thinking', msg.message);
+                        } else if (msg.type === 'reaction') {
+                            addDebateMessage(msg.agent, 'reaction', msg.message);
+                        } else if (msg.type === 'speaking') {
+                            addDebateMessage(msg.agent, 'speaking', msg.message);
+                        } else if (msg.type === 'message') {
+                            addDebateMessage(msg.agent, 'message', msg.message, msg.vote);
+                        } else if (msg.type === 'decision') {
+                            addDebateMessage(msg.agent, 'decision', msg.message);
+                        }
+                    });
+                } else {
+                    console.warn('No conversation log received from backend');
+                }
+                
                 // Clear form cookie after successful submission
                 clearFormCookie('post-form');
-                // Redirect to debate page
-                window.location.href = `/debate/${postInputId}`;
+                
+                // Wait to show completion, then close modal and redirect
+                setTimeout(() => {
+                    showLoadingModal(false);
+                    window.location.href = `/debate/${postInputId}`;
+                }, 3000);
             } else {
+                showLoadingModal(false);
                 // Check if it's a rate limit error
                 if (debateData.error_type === 'rate_limit' || debateResponse.status === 429) {
                     const rateLimitMsg = debateData.message || '🚫 API Rate Limit Exceeded\n\nGroq API has reached its daily token limit (100,000 tokens).\n\nPlease wait 20-30 minutes and try again, or upgrade your Groq plan.';
@@ -665,18 +818,18 @@ function renderDebateCard(debate) {
             <div class="space-y-4 text-sm">
                 <div>
                     <span class="font-medium text-muted-foreground">Recommendation:</span>
-                    <p class="mt-1">${debate.recommendation}</p>
+                    <p class="mt-2 leading-relaxed">${debate.recommendation || 'No recommendation provided'}</p>
                 </div>
                 
                 <div>
                     <span class="font-medium text-muted-foreground">Reasoning:</span>
-                    <p class="mt-1 text-muted-foreground">${debate.reasoning}</p>
+                    <p class="mt-2 text-muted-foreground leading-relaxed whitespace-pre-line">${debate.reasoning || 'No detailed reasoning provided'}</p>
                 </div>
                 
                 ${debate.concerns ? `
                 <div>
                     <span class="font-medium text-muted-foreground">Concerns:</span>
-                    <p class="mt-1 text-yellow-500">${debate.concerns}</p>
+                    <p class="mt-2 text-yellow-500 leading-relaxed">${debate.concerns}</p>
                 </div>
                 ` : ''}
             </div>
@@ -725,11 +878,11 @@ function displayCMODecision(cmoDebate) {
             <div class="space-y-4 text-sm">
                 <div>
                     <span class="font-medium text-muted-foreground">Recommendation:</span>
-                    <p class="mt-1">${cmoDebate.recommendation}</p>
+                    <p class="mt-2 leading-relaxed">${cmoDebate.recommendation || 'No recommendation provided'}</p>
                 </div>
                 <div>
                     <span class="font-medium text-muted-foreground">Reasoning:</span>
-                    <p class="mt-1 text-muted-foreground">${cmoDebate.reasoning}</p>
+                    <p class="mt-2 text-muted-foreground leading-relaxed whitespace-pre-line">${cmoDebate.reasoning || 'No detailed reasoning provided'}</p>
                 </div>
                 <div class="flex items-center justify-between pt-2 border-t border-border">
                     <span class="text-sm text-muted-foreground">Confidence Score: ${cmoDebate.score}%</span>

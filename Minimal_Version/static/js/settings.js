@@ -268,18 +268,27 @@ async function loadApiKeys() {
         const apiKeyList = document.getElementById('api-key-list');
         if (data.keys && data.keys.length > 0) {
             apiKeyList.innerHTML = data.keys.map((key, index) => `
-                <div class="flex items-center gap-2 p-3 card">
-                    <span class="flex-1 font-mono text-sm">${maskApiKey(key.key)}</span>
-                    <span class="text-xs px-2 py-1 rounded ${key.active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
-                        ${key.active ? 'Active' : 'Inactive'}
-                    </span>
-                    <button onclick="removeApiKey(${key.id})" class="btn btn-danger h-8 px-3 text-sm">
-                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
+                <div class="flex items-center gap-3 p-4 card">
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm mb-1">${key.name || 'Unnamed Key'}</div>
+                        <div class="font-mono text-xs text-muted-foreground">***${key.key.substring(key.key.length - 8)}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs px-3 py-1.5 rounded font-medium ${
+                            key.active 
+                                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }">
+                            ${key.active ? '✓ Active' : '✗ Inactive'}
+                        </span>
+                        <button onclick="removeApiKey(${key.id})" class="btn btn-danger h-8 px-3 text-sm">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
                 </div>
             `).join('');
         } else {
-            apiKeyList.innerHTML = '<p class="text-muted-foreground text-sm">No API keys configured.</p>';
+            apiKeyList.innerHTML = '<p class="text-muted-foreground text-sm">No API keys configured. Add your first API key below.</p>';
         }
     } catch (error) {
         console.error('Error loading API keys:', error);
@@ -294,7 +303,9 @@ function maskApiKey(key) {
 
 async function addApiKey() {
     const keyInput = document.getElementById('new-api-key');
+    const nameInput = document.getElementById('new-api-key-name');
     const apiKey = keyInput.value.trim();
+    const keyName = nameInput.value.trim() || 'Unnamed Key';
     
     if (!apiKey) {
         showMessage('Please enter an API key', 'warning');
@@ -305,7 +316,10 @@ async function addApiKey() {
         const response = await fetch(`${API_BASE}/settings/api-keys`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ api_key: apiKey })
+            body: JSON.stringify({ 
+                api_key: apiKey,
+                name: keyName
+            })
         });
         
         const data = await response.json();
@@ -313,6 +327,7 @@ async function addApiKey() {
         if (data.success) {
             showMessage('API key added successfully', 'success');
             keyInput.value = '';
+            nameInput.value = '';
             loadApiKeys();
         } else {
             showMessage(data.error || 'Failed to add API key', 'error');
@@ -339,6 +354,55 @@ async function removeApiKey(keyId) {
     } catch (error) {
         console.error('Error removing API key:', error);
         showMessage('Failed to remove API key', 'error');
+    }
+}
+
+async function testAllApiKeys() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.disabled = true;
+    button.innerHTML = `
+        <svg class="w-4 h-4 inline-block mr-2 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="0.75"></path>
+        </svg>
+        Testing...
+    `;
+    
+    try {
+        const response = await fetch(`${API_BASE}/settings/api-keys/test-all`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show detailed results
+            const summary = `Tested ${data.total_count} keys: ${data.active_count} active, ${data.total_count - data.active_count} inactive`;
+            showMessage(summary, data.active_count > 0 ? 'success' : 'warning');
+            
+            // Log individual results
+            console.log('API Key Test Results:', data.results);
+            data.results.forEach(r => {
+                console.log(`  ${r.name}: ${r.status}`);
+            });
+            
+            // Force reload to show updated status
+            await loadApiKeys();
+        } else {
+            showMessage(data.error || 'Failed to test API keys', 'error');
+            // Still reload to show current status
+            await loadApiKeys();
+        }
+    } catch (error) {
+        console.error('Error testing API keys:', error);
+        showMessage('Failed to test API keys - check console for details', 'error');
+    } finally {
+        // Restore button
+        button.disabled = false;
+        button.innerHTML = originalText;
     }
 }
 

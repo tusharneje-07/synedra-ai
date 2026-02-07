@@ -189,11 +189,8 @@ def create_post_input():
     try:
         data = request.json
         
-        # Validate required fields
-        required_fields = [
-            'brand_id', 'post_topic', 'post_objective', 'target_platform',
-            'content_type', 'key_message'
-        ]
+        # Validate required fields (simplified - only 3 fields needed)
+        required_fields = ['brand_id', 'post_topic', 'target_platform']
         
         for field in required_fields:
             if field not in data:
@@ -209,6 +206,24 @@ def create_post_input():
                 'success': False,
                 'error': 'Brand not found'
             }), 404
+        
+        # Auto-populate missing fields that agents will determine
+        # Agents will handle objective, content type, and key message based on topic
+        if 'post_objective' not in data or not data['post_objective']:
+            data['post_objective'] = 'Engagement'  # Default, agents will optimize
+        
+        if 'content_type' not in data or not data['content_type']:
+            data['content_type'] = 'General'  # Agents will determine best type
+        
+        if 'key_message' not in data or not data['key_message']:
+            data['key_message'] = data['post_topic']  # Use topic as base message
+        
+        # Optional fields - keep if provided
+        if 'target_cta' not in data:
+            data['target_cta'] = ''
+        
+        if 'trending_topics' not in data:
+            data['trending_topics'] = ''
         
         # Create post input
         post_input_id = db.create_post_input(data)
@@ -269,6 +284,34 @@ def get_brand_posts(brand_id):
 # ========================================
 # API ROUTES - Debate Process
 # ========================================
+
+@app.route('/api/debates/current-api-key', methods=['GET'])
+def get_current_api_key():
+    """
+    Get the name of the currently active API key
+    """
+    try:
+        from utils.api_manager import get_active_api_key, get_current_key_name
+        
+        api_key = get_active_api_key()
+        if api_key:
+            key_name = get_current_key_name(api_key)
+            return jsonify({
+                'success': True,
+                'api_key_name': key_name
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'No active API key available'
+            }), 503
+            
+    except Exception as e:
+        logger.error(f"Error getting current API key: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/debates/start', methods=['POST'])
 def start_debate():
@@ -335,13 +378,20 @@ def start_debate():
             generator = PostGenerator()
             generated_posts = generator.generate_posts(post_input_id, debate_results)
         
+        # Log the response data for debugging
+        api_key_name = debate_results.get('api_key_name', 'Unknown')
+        conversation_log = debate_results.get('conversation_log', [])
+        logger.info(f"📤 Returning to frontend - API Key: {api_key_name}, Conversation Messages: {len(conversation_log)}")
+        
         return jsonify({
             'success': True,
             'post_input_id': post_input_id,
             'final_vote': final_vote,
             'cmo_decision': debate_results.get('cmo_decision'),
             'generated_posts_count': len(generated_posts),
-            'message': f'Debate complete - {final_vote}. Generated {len(generated_posts)} post variations.'
+            'message': f'Debate complete - {final_vote}. Generated {len(generated_posts)} post variations.',
+            'api_key_name': api_key_name,
+            'conversation_log': conversation_log
         })
         
     except Exception as e:

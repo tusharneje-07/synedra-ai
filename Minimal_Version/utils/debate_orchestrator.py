@@ -47,6 +47,8 @@ class DebateOrchestrator:
         - Dynamic turn-based conversation (not fixed rounds)
         - CMO monitors live and stops when ready
         
+        CRITICAL: Tests API health before starting
+        
         Args:
             post_input_id: ID of the post input
             brand_data: Brand configuration data
@@ -57,26 +59,71 @@ class DebateOrchestrator:
         """
         logger.info(f"=== STARTING DYNAMIC TEAM DEBATE for post_input_id: {post_input_id} ===")
         
+        # CRITICAL: Check API health before starting
+        from utils.api_manager import ensure_api_health, get_active_api_key, get_current_key_name
+        try:
+            ensure_api_health()
+            # Get and log the API key being used
+            current_key = get_active_api_key()
+            current_key_name = get_current_key_name(current_key)
+            logger.info(f"🔑 Debate will use API key: {current_key_name}")
+        except Exception as e:
+            logger.error(f"❌ API Health Check Failed: {str(e)}")
+            return {
+                'success': False,
+                'error': f'API Health Check Failed: {str(e)}',
+                'post_input_id': post_input_id,
+                'message': 'Please ensure at least one working API key is configured in Settings.'
+            }
+        
         # Build context for all agents
         context = self._build_context(brand_data, post_data)
         
+        # Track conversation for frontend display
+        conversation_messages = []
+        conversation_messages.append({
+            'type': 'system',
+            'agent': 'SYSTEM',
+            'message': f'Using API Key: {current_key_name}',
+            'timestamp': 'start'
+        })
+        
         try:
             # PHASE 1: Quick initial reactions (everyone speaks once)
-            logger.info("🎤 PHASE 1: Initial quick reactions from all agents")
-            initial_reactions = self._get_initial_reactions(context, post_input_id)
+            logger.info("🎙️ PHASE 1: Initial quick reactions from all agents")
+            conversation_messages.append({
+                'type': 'phase',
+                'agent': 'SYSTEM',
+                'message': 'Phase 1: Initial Quick Reactions',
+                'timestamp': 'phase1'
+            })
+            initial_reactions = self._get_initial_reactions(context, post_input_id, conversation_messages)
             
             # PHASE 2: DYNAMIC CONVERSATION - agents jump in with rapid responses
             logger.info("💬 PHASE 2: Open conversation - agents jumping in dynamically")
+            conversation_messages.append({
+                'type': 'phase',
+                'agent': 'SYSTEM',
+                'message': 'Phase 2: Dynamic Conversation',
+                'timestamp': 'phase2'
+            })
             conversation_log = self._run_dynamic_conversation(
                 context, 
                 initial_reactions, 
                 post_input_id,
+                conversation_messages,
                 max_turns=20,  # Allow up to 20 back-and-forth exchanges
                 min_turns=5    # Minimum 5 turns before allowing convergence to stop
             )
             
             # CMO INTERVENTION: Stops the debate and makes final call
             logger.info("👔 CMO: Stopping the debate and making final decision")
+            conversation_messages.append({
+                'type': 'phase',
+                'agent': 'SYSTEM',
+                'message': 'CMO Making Final Decision',
+                'timestamp': 'cmo'
+            })
             
             full_transcript = {
                 'initial_reactions': initial_reactions,
@@ -94,6 +141,13 @@ class DebateOrchestrator:
             
             logger.info(f"=== DEBATE CONCLUDED after {conversation_log['turn_count']} exchanges - Decision: {cmo_decision.get('final_vote')} ===")
             
+            conversation_messages.append({
+                'type': 'decision',
+                'agent': 'CMOAgent',
+                'message': f"Final Decision: {cmo_decision.get('final_vote')}",
+                'timestamp': 'end'
+            })
+            
             return {
                 'success': True,
                 'post_input_id': post_input_id,
@@ -101,7 +155,9 @@ class DebateOrchestrator:
                 'cmo_decision': cmo_decision,
                 'final_vote': cmo_decision.get('final_vote'),
                 'total_exchanges': conversation_log['turn_count'],
-                'context': context
+                'context': context,
+                'api_key_name': current_key_name,
+                'conversation_log': conversation_messages
             }
             
         except Exception as e:
@@ -112,38 +168,49 @@ class DebateOrchestrator:
                 'post_input_id': post_input_id
             }
     
-    def _get_initial_reactions(self, context: Dict, post_input_id: int) -> Dict[str, Any]:
+    def _get_initial_reactions(self, context: Dict, post_input_id: int, conversation_messages: list) -> Dict[str, Any]:
         """Phase 1: Quick initial gut reactions from all agents"""
         reactions = {}
         
         logger.info("  📊 TrendAgent: Quick reaction...")
+        conversation_messages.append({'type': 'thinking', 'agent': 'TrendAgent', 'message': 'Analyzing trends...'})
         trend_reaction = self.trend_agent.quick_reaction(context)
         reactions['TrendAgent'] = trend_reaction
         self._save_agent_debate(post_input_id, trend_reaction)
+        conversation_messages.append({'type': 'reaction', 'agent': 'TrendAgent', 'message': f"Score: {trend_reaction.get('score', 'N/A')}/100"})
         
         logger.info("  🎨 BrandAgent: Quick reaction...")
+        conversation_messages.append({'type': 'thinking', 'agent': 'BrandAgent', 'message': 'Checking brand alignment...'})
         brand_reaction = self.brand_agent.quick_reaction(context)
         reactions['BrandAgent'] = brand_reaction
         self._save_agent_debate(post_input_id, brand_reaction)
+        conversation_messages.append({'type': 'reaction', 'agent': 'BrandAgent', 'message': f"Score: {brand_reaction.get('score', 'N/A')}/100"})
         
         logger.info("  ⚖️ ComplianceAgent: Quick reaction...")
+        conversation_messages.append({'type': 'thinking', 'agent': 'ComplianceAgent', 'message': 'Verifying compliance...'})
         compliance_reaction = self.compliance_agent.quick_reaction(context)
         reactions['ComplianceAgent'] = compliance_reaction
         self._save_agent_debate(post_input_id, compliance_reaction)
         
+        conversation_messages.append({'type': 'reaction', 'agent': 'ComplianceAgent', 'message': f"Score: {compliance_reaction.get('score', 'N/A')}/100"})
+        
         logger.info("  🛡️ RiskAgent: Quick reaction...")
+        conversation_messages.append({'type': 'thinking', 'agent': 'RiskAgent', 'message': 'Assessing risks...'})
         risk_reaction = self.risk_agent.quick_reaction(context)
         reactions['RiskAgent'] = risk_reaction
         self._save_agent_debate(post_input_id, risk_reaction)
+        conversation_messages.append({'type': 'reaction', 'agent': 'RiskAgent', 'message': f"Score: {risk_reaction.get('score', 'N/A')}/100"})
         
         logger.info("  💬 EngagementAgent: Quick reaction...")
+        conversation_messages.append({'type': 'thinking', 'agent': 'EngagementAgent', 'message': 'Evaluating engagement...'})
         engagement_reaction = self.engagement_agent.quick_reaction(context)
         reactions['EngagementAgent'] = engagement_reaction
         self._save_agent_debate(post_input_id, engagement_reaction)
+        conversation_messages.append({'type': 'reaction', 'agent': 'EngagementAgent', 'message': f"Score: {engagement_reaction.get('score', 'N/A')}/100"})
         
         return reactions
     
-    def _run_dynamic_conversation(self, context: Dict, initial_reactions: Dict, post_input_id: int, max_turns: int = 20, min_turns: int = 5) -> Dict[str, Any]:
+    def _run_dynamic_conversation(self, context: Dict, initial_reactions: Dict, post_input_id: int, conversation_messages: list, max_turns: int = 20, min_turns: int = 5) -> Dict[str, Any]:
         """
         Dynamic conversation where agents jump in with rapid responses
         Like a real heated meeting with back-and-forth
@@ -191,6 +258,7 @@ class DebateOrchestrator:
             agent = agent_objects[next_speaker]
             
             logger.info(f"  💬 Turn {turn+1}/{max_turns}: {next_speaker} jumping in...")
+            conversation_messages.append({'type': 'speaking', 'agent': next_speaker, 'message': 'Speaking...'})
             
             # Agent responds to the current conversation
             response = agent.jump_in_conversation(context, conversation_history)
@@ -204,11 +272,20 @@ class DebateOrchestrator:
             conversation_turns.append(conversation_turn)
             self._save_agent_debate(post_input_id, response)
             
+            # Add to conversation log for frontend
+            vote = response.get('vote', 'unknown')
+            passion = response.get('passion_level', 'calm')
+            conversation_messages.append({
+                'type': 'message',
+                'agent': next_speaker,
+                'message': f"{passion.upper()} - Vote: {vote}",
+                'vote': vote,
+                'passion': passion
+            })
+            
             last_speaker = next_speaker
             
             # Log the intensity
-            passion = response.get('passion_level', 'calm')
-            vote = response.get('vote', 'unknown')
             logger.info(f"    → {passion.upper()} response, voting: {vote}")
         
         # Reached max turns without convergence

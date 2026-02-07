@@ -93,7 +93,8 @@ You MUST respond in valid JSON format with this structure:
     "elements_to_avoid": ["avoid 1", "avoid 2"],
     "format_recommendation": "recommended format"
   },
-  "reasoning": "detailed reasoning for final decision",
+  "recommendation": "Your executive decision in 2-3 detailed sentences explaining the strategic direction and why this balances all competing interests",
+  "reasoning": "Your complete strategic analysis in paragraph form (minimum 5-6 sentences). Explain how you weighed each agent's input, what conflicts you resolved, which trade-offs you prioritized and why, what risks you accepted or mitigated, and how this decision aligns with overall marketing strategy. Be comprehensive and executive-level in your thinking.",
   "action_items": ["action 1", "action 2"]
 }"""
         
@@ -196,24 +197,24 @@ Provide specific instructions for post generation if approved/conditional.
             'agent_name': self.name,
             'agent_role': self.role,
             'final_decision': 'Unable to complete arbitration',
-            'overall_assessment': 'Technical error prevented full analysis',
-            'conflicts_identified': ['Analysis incomplete'],
+            'overall_assessment': 'Technical error prevented comprehensive strategic analysis and arbitration',
+            'conflicts_identified': ['Analysis incomplete - unable to identify agent conflicts'],
             'trade_offs_considered': [],
             'final_vote': 'reject',
             'vote': 'reject',
             'confidence_score': 0,
             'score': 0,
-            'required_changes': ['Complete manual review'],
+            'required_changes': ['Complete manual strategic review', 'Retry full agent analysis cycle'],
             'post_generation_instructions': {
-                'tone_direction': 'Manual review required',
-                'content_focus': 'Cannot proceed',
+                'tone_direction': 'Cannot provide direction - manual review required',
+                'content_focus': 'Cannot proceed without complete analysis',
                 'elements_to_include': [],
-                'elements_to_avoid': ['Any content until manual review'],
-                'format_recommendation': 'N/A'
+                'elements_to_avoid': ['Any content publication until manual strategic review'],
+                'format_recommendation': 'N/A - awaiting manual review'
             },
-            'recommendation': 'Manual review required due to technical error',
-            'reasoning': 'Technical error during CMO arbitration - manual review mandatory',
-            'action_items': ['Complete full manual review', 'Retry arbitration']
+            'recommendation': 'I must reject proceeding with this content due to incomplete strategic analysis. Technical difficulties prevented me from arbitrating between agent perspectives and making an informed executive decision. Complete manual strategic review is required.',
+            'reasoning': 'A critical technical error interrupted the CMO arbitration process, preventing me from reviewing agent analyses, identifying conflicts between perspectives, weighing strategic trade-offs, and making an informed executive decision. As the final decision-maker, I cannot approve content without understanding the full strategic picture including viral potential vs brand risk trade-offs, engagement opportunities vs compliance concerns, and short-term gains vs long-term brand positioning. The confidence score of zero reflects complete uncertainty. Proceeding without proper strategic arbitration could result in approving high-risk content, missing critical compliance issues, or rejecting valuable opportunities. I require a complete manual strategic review examining all agent perspectives, resolving conflicts between competing priorities, and making balanced decisions that serve overall marketing objectives.',
+            'action_items': ['Complete full manual strategic review', 'Retry agent analysis cycle', 'Resolve technical issues preventing arbitration', 'Manual executive review of content strategy']
         }
     
     def arbitrate_debate(self, context: Dict[str, Any], full_debate: Dict[str, Any]) -> Dict[str, Any]:

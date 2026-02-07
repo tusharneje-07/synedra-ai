@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Post - Multi-Agent Post Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/css/output.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
 <body class="min-h-screen">
     <!-- Navigation -->
@@ -89,22 +95,16 @@
         <!-- Post Requirements Form -->
         <div class="card p-6 lg:p-8">
             <h2 class="text-2xl font-semibold tracking-tight mb-6">Post Requirements</h2>
+            <p class="text-sm text-muted-foreground mb-6">
+                Our AI agents will handle all the details. Just tell us the basics!
+            </p>
             
             <form id="post-form" class="space-y-6">
-                <div class="grid gap-6 md:grid-cols-2">
-                    <!-- Post Topic -->
-                    <div class="space-y-2">
-                        <label for="post_topic" class="label">
-                            Post Topic <span class="text-destructive">*</span>
-                        </label>
-                        <input type="text" id="post_topic" name="post_topic" required 
-                            class="input" placeholder="e.g., New Product Launch, Industry Insight">
-                    </div>
-
+                <div class="grid gap-6">
                     <!-- Target Platform -->
                     <div class="space-y-2">
                         <label for="target_platform" class="label">
-                            Target Platform <span class="text-destructive">*</span>
+                            Platform <span class="text-destructive">*</span>
                         </label>
                         <select id="target_platform" name="target_platform" required class="input">
                             <option value="">Select platform...</option>
@@ -113,65 +113,27 @@
                             <option value="Instagram">Instagram</option>
                             <option value="Facebook">Facebook</option>
                         </select>
+                        <p class="text-xs text-muted-foreground">Where do you want to publish this post?</p>
                     </div>
 
-                    <!-- Post Objective -->
+                    <!-- Post Topic / What to post about -->
                     <div class="space-y-2">
-                        <label for="post_objective" class="label">
-                            Post Objective <span class="text-destructive">*</span>
+                        <label for="post_topic" class="label">
+                            What do you want to post about? <span class="text-destructive">*</span>
                         </label>
-                        <select id="post_objective" name="post_objective" required class="input">
-                            <option value="">Select objective...</option>
-                            <option value="Awareness">Awareness</option>
-                            <option value="Engagement">Engagement</option>
-                            <option value="Conversion">Conversion</option>
-                            <option value="Education">Education</option>
-                        </select>
+                        <textarea id="post_topic" name="post_topic" required rows="4"
+                            class="textarea" placeholder="e.g., Launching our new AI-powered analytics dashboard, Sharing insights about remote work productivity, Announcing our Q4 results"></textarea>
+                        <p class="text-xs text-muted-foreground">Describe your topic in a few sentences. Our agents will craft the perfect message.</p>
                     </div>
 
-                    <!-- Content Type -->
-                    <div class="space-y-2">
-                        <label for="content_type" class="label">
-                            Content Type <span class="text-destructive">*</span>
-                        </label>
-                        <select id="content_type" name="content_type" required class="input">
-                            <option value="">Select type...</option>
-                            <option value="Announcement">Announcement</option>
-                            <option value="Educational">Educational</option>
-                            <option value="Promotional">Promotional</option>
-                            <option value="Story">Story</option>
-                            <option value="Question">Question</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Full Width Fields -->
-                <div class="space-y-6">
-                    <!-- Key Message -->
-                    <div class="space-y-2">
-                        <label for="key_message" class="label">
-                            Key Message <span class="text-destructive">*</span>
-                        </label>
-                        <textarea id="key_message" name="key_message" required rows="3"
-                            class="textarea" placeholder="The main point you want to communicate..."></textarea>
-                    </div>
-
-                    <!-- Target CTA -->
+                    <!-- Call to Action / Important Keywords -->
                     <div class="space-y-2">
                         <label for="target_cta" class="label">
-                            Call to Action
+                            Call to Action or Important Keywords
                         </label>
                         <input type="text" id="target_cta" name="target_cta" 
-                            class="input" placeholder="e.g., Visit our website, Download now, Sign up">
-                    </div>
-
-                    <!-- Trending Topics -->
-                    <div class="space-y-2">
-                        <label for="trending_topics" class="label">
-                            Trending Topics/Hashtags
-                        </label>
-                        <input type="text" id="trending_topics" name="trending_topics" 
-                            class="input" placeholder="e.g., #AI, #TechTrends, #Innovation">
+                            class="input" placeholder="e.g., Visit our website, Download now, #AI #Innovation">
+                        <p class="text-xs text-muted-foreground">Optional: Add a CTA or specific keywords/hashtags you want included</p>
                     </div>
                 </div>
 
@@ -360,6 +322,32 @@
                                         Initializing debate orchestrator...
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- API Key Status -->
+                        <div class="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🔑</div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-sm mb-1">API Key Status</h4>
+                                    <p id="api-key-status" class="text-sm text-muted-foreground font-mono">
+                                        Checking API key...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Debate Conversation Log -->
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Live Debate Conversation
+                            </h4>
+                            <div id="debate-conversation" class="space-y-2 max-h-96 overflow-y-auto rounded-lg border border-border bg-muted/30 p-4">
+                                <p class="text-sm text-muted-foreground italic">Conversation will appear here as agents debate...</p>
                             </div>
                         </div>
                     </div>

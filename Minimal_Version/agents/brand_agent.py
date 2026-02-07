@@ -68,9 +68,9 @@ You MUST respond in valid JSON format with this structure:
   "messaging_compliance": <number 0-35>,
   "overall_score": <number 0-100>,
   "vote": "approve/conditional/reject",
-  "recommendation": "brief recommendation",
-  "reasoning": "detailed reasoning for scores",
-  "concerns": "any brand consistency concerns",
+  "recommendation": "Your brand strategy recommendation in 2-3 detailed sentences explaining how to maintain brand consistency while allowing creative expression",
+  "reasoning": "Your complete brand analysis in paragraph form (minimum 4-5 sentences). Explain how you evaluated tone alignment, what brand attributes you checked against, why the content does or does not match the brand DNA, and what specific elements influenced your scores. Be analytical and specific.",
+  "concerns": "Any brand consistency concerns in 2-3 sentences explaining potential brand dilution or messaging conflicts",
   "suggested_improvements": ["improvement 1", "improvement 2"]
 }"""
         
@@ -149,7 +149,7 @@ Overall score determines vote:
         return {
             'agent_name': self.name,
             'agent_role': self.role,
-            'brand_analysis': 'Unable to complete brand analysis',
+            'brand_analysis': 'Unable to complete comprehensive brand analysis due to technical error',
             'tone_alignment_score': 50,
             'vocabulary_match': 15,
             'emotional_valence': 12,
@@ -158,10 +158,10 @@ Overall score determines vote:
             'overall_score': 50,
             'score': 50,
             'vote': 'conditional',
-            'recommendation': 'Manual review required',
-            'reasoning': 'Technical error during brand analysis',
-            'concerns': 'Analysis incomplete - requires manual brand review',
-            'suggested_improvements': ['Complete full brand analysis']
+            'recommendation': 'I recommend conditional approval pending manual brand alignment review. Technical difficulties prevented full analysis of tone consistency, vocabulary matching, and messaging compliance. Review required to ensure brand DNA preservation.',
+            'reasoning': 'A technical error interrupted my brand consistency analysis, preventing me from completing essential evaluations of tone alignment, vocabulary matching against brand guidelines, emotional valence consistency, and messaging compliance. Without confirming this content maintains our brand DNA, I cannot provide full approval. The scores represent neutral baselines rather than measured alignment. Publishing content without brand verification risks diluting our brand identity, confusing our audience with inconsistent messaging, and potentially contradicting established brand guidelines. I recommend manual review by brand stakeholders to verify tone, check vocabulary against brand keywords, ensure messaging aligns with guidelines, and confirm overall brand consistency.',
+            'concerns': 'Brand analysis incomplete due to technical error. Cannot verify tone alignment, vocabulary consistency, or messaging compliance. Manual brand review required to protect brand identity and ensure consistent brand experience.',
+            'suggested_improvements': ['Complete full brand analysis', 'Manual brand consistency review', 'Verify tone matches brand guidelines', 'Check vocabulary against brand keywords']
         }
 
     def respond_to_debate(self, context: Dict, my_previous: Dict, others_views: Dict) -> Dict[str, Any]:
@@ -266,33 +266,34 @@ Make your FINAL CASE - this is your last chance!
         """
         logger.info(f"{self.name}: Quick gut reaction")
         
-        system_prompt = f"""You are {self.role} giving a QUICK GUT REACTION in a fast-paced meeting.
+        system_prompt = f"""You are {self.role} providing your initial analysis.
 
-This is your INSTANT, INSTINCT-DRIVEN first thought. Be:
-- BRIEF (2-3 sentences max)
-- DIRECT and passionate
-- Fast decision-maker
-- No long analysis - just your instant take
+Provide a thorough but focused assessment including:
+- Your immediate reaction and gut feeling
+- Strategic recommendation (2-3 sentences)
+- Detailed reasoning (4-5 sentences explaining your thinking)
+- Specific concerns if any
 
-This is like blurting out your first reaction when you hear an idea.
-
-Respond in JSON with your quick take."""
+You MUST respond in valid JSON format. All fields are required."""
         
         prompt = f"""
 CONTEXT:
 {json.dumps(context, indent=2)}
 
-Give your INSTANT REACTION. What's your gut feeling? Quick!
-
-Return JSON:
+Provide your analysis in this EXACT JSON format:
 {{
   "agent_name": "{self.name}",
   "agent_role": "{self.role}",
-  "quick_take": "Your instant 2-3 sentence reaction",
+  "quick_take": "Your instant 2-3 sentence reaction to this content",
+  "recommendation": "Your brand strategy recommendation in 2-3 detailed sentences",
+  "reasoning": "Your complete brand analysis in paragraph form (minimum 4-5 sentences). Explain how you evaluated brand alignment and why.",
   "vote": "approve/conditional/reject",
-  "score": 0-100,
-  "gut_feeling": "excited/cautious/concerned/optimistic"
-}}"""
+  "score": 75,
+  "gut_feeling": "excited/cautious/concerned/optimistic",
+  "concerns": "Any brand consistency concerns in 2-3 sentences, or empty string if none"
+}}
+
+Remember: All text fields must be complete sentences. Numbers must not have quotes."""
         
         try:
             response = self.llm.simple_prompt(
@@ -308,9 +309,13 @@ Return JSON:
             logger.error(f"{self.name}: Error in quick reaction: {e}")
             return {
                 'agent_name': self.name,
-                'quick_take': 'Error in reaction',
+                'agent_role': self.role,
+                'quick_take': 'Technical error during analysis',
+                'recommendation': 'Unable to provide recommendation due to technical error. Manual review required.',
+                'reasoning': 'A technical error prevented me from completing my initial brand alignment analysis. Without proper analysis, I cannot assess brand consistency or messaging compliance. Manual review recommended.',
                 'vote': 'conditional',
-                'score': 50
+                'score': 50,
+                'concerns': 'Technical error prevented brand analysis'
             }
     
     def jump_in_conversation(self, context: Dict, conversation_history: Dict) -> Dict[str, Any]:

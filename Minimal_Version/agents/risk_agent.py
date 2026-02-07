@@ -79,9 +79,9 @@ You MUST respond in valid JSON format with this structure:
   "worst_case_scenarios": ["scenario 1", "scenario 2"],
   "overall_risk_score": <number 0-100>,
   "vote": "approve/conditional/reject",
-  "recommendation": "brief recommendation",
-  "reasoning": "detailed risk reasoning",
-  "concerns": "specific risk concerns",
+  "recommendation": "Your risk management recommendation in 2-3 detailed sentences explaining what should be done to protect brand reputation and why it matters",
+  "reasoning": "Your complete risk analysis in paragraph form (minimum 4-5 sentences). Explain what risks you identified, why they matter for brand safety, what past incidents or patterns informed your analysis, and how you calculated the risk scores. Be thorough and analytical.",
+  "concerns": "Specific reputation or safety concerns in 2-3 sentences explaining potential negative outcomes",
   "mitigation_strategies": ["strategy 1", "strategy 2"]
 }"""
         
@@ -174,21 +174,21 @@ Think like a paranoid auditor. Imagine worst-case scenarios!
         return {
             'agent_name': self.name,
             'agent_role': self.role,
-            'risk_analysis': 'Unable to complete risk analysis',
+            'risk_analysis': 'Unable to complete comprehensive risk analysis due to technical error',
             'controversy_probability': 50,
             'backlash_risk': 50,
             'platform_ban_probability': 20,
             'toxicity_score': 30,
-            'sensitive_topics_detected': ['Unknown - analysis incomplete'],
-            'potential_triggers': ['Analysis incomplete'],
-            'worst_case_scenarios': ['Unable to assess without complete analysis'],
+            'sensitive_topics_detected': ['Unknown - analysis incomplete due to technical error'],
+            'potential_triggers': ['Analysis incomplete - cannot identify all risk factors'],
+            'worst_case_scenarios': ['Unable to assess worst-case outcomes without complete risk analysis'],
             'overall_risk_score': 50,
             'score': 50,
             'vote': 'reject',
-            'recommendation': 'Manual risk review required',
-            'reasoning': 'Technical error during risk analysis - manual review mandatory for safety',
-            'concerns': 'Risk analysis incomplete - cannot approve without full safety review',
-            'mitigation_strategies': ['Complete full risk analysis', 'Manual safety review']
+            'recommendation': 'I must reject this content due to incomplete risk assessment. Technical difficulties prevented comprehensive analysis of brand safety risks. Manual reputation risk review is required before publication.',
+            'reasoning': 'A technical error interrupted my risk analysis, preventing me from completing critical safety checks for sensitive topics, controversy potential, toxicity, and brand reputation damage. Without confirming this content is safe from backlash, platform violations, or PR crises, I cannot approve it. The risk scores reflect uncertainty rather than measured safety levels. Publishing content with unverified safety risks could result in brand damage, negative sentiment spikes, platform penalties, or public backlash. I strongly recommend conducting a thorough manual risk assessment covering sensitive topics, cultural sensitivity, potential misinterpretation, and worst-case reputation scenarios before proceeding.',
+            'concerns': 'Risk analysis incomplete due to technical error. Cannot verify brand safety, identify sensitive topics, or assess backlash potential. Manual reputation review mandatory to protect brand integrity.',
+            'mitigation_strategies': ['Complete full risk analysis', 'Manual brand safety review', 'Verify no sensitive or controversial elements', 'Test content with focus group before publishing']
         }
 
     def respond_to_debate(self, context: Dict, my_previous: Dict, others_views: Dict) -> Dict[str, Any]:
@@ -293,33 +293,34 @@ Make your FINAL CASE - this is your last chance!
         """
         logger.info(f"{self.name}: Quick gut reaction")
         
-        system_prompt = f"""You are {self.role} giving a QUICK GUT REACTION in a fast-paced meeting.
+        system_prompt = f"""You are {self.role} providing your initial risk analysis.
 
-This is your INSTANT, INSTINCT-DRIVEN first thought. Be:
-- BRIEF (2-3 sentences max)
-- DIRECT and passionate
-- Fast decision-maker
-- No long analysis - just your instant take
+Provide a thorough but focused assessment including:
+- Your immediate reaction and gut feeling
+- Risk recommendation (2-3 sentences)
+- Detailed reasoning (4-5 sentences explaining your safety analysis)
+- Specific concerns if any
 
-This is like blurting out your first reaction when you hear an idea.
-
-Respond in JSON with your quick take."""
+You MUST respond in valid JSON format. All fields are required."""
         
         prompt = f"""
 CONTEXT:
 {json.dumps(context, indent=2)}
 
-Give your INSTANT REACTION. What's your gut feeling? Quick!
-
-Return JSON:
+Provide your risk analysis in this EXACT JSON format:
 {{
   "agent_name": "{self.name}",
   "agent_role": "{self.role}",
-  "quick_take": "Your instant 2-3 sentence reaction",
+  "quick_take": "Your instant 2-3 sentence risk assessment",
+  "recommendation": "Your risk management recommendation in 2-3 detailed sentences",
+  "reasoning": "Your complete risk analysis in paragraph form (minimum 4-5 sentences). Explain what risks you identified and why.",
   "vote": "approve/conditional/reject",
-  "score": 0-100,
-  "gut_feeling": "excited/cautious/concerned/optimistic"
-}}"""
+  "score": 80,
+  "gut_feeling": "excited/cautious/concerned/optimistic",
+  "concerns": "Any safety concerns in 2-3 sentences, or empty string if none"
+}}
+
+Remember: All text fields must be complete sentences. Numbers must not have quotes."""
         
         try:
             response = self.llm.simple_prompt(
@@ -335,9 +336,13 @@ Return JSON:
             logger.error(f"{self.name}: Error in quick reaction: {e}")
             return {
                 'agent_name': self.name,
-                'quick_take': 'Error in reaction',
-                'vote': 'conditional',
-                'score': 50
+                'agent_role': self.role,
+                'quick_take': 'Technical error during analysis',
+                'recommendation': 'Unable to provide risk recommendation due to technical error. Manual safety review required.',
+                'reasoning': 'A technical error prevented me from completing my initial risk analysis. Without proper assessment of brand safety risks and potential backlash, I cannot approve this content. Manual reputation review is mandatory.',
+                'vote': 'reject',
+                'score': 50,
+                'concerns': 'Technical error prevented risk assessment'
             }
     
     def jump_in_conversation(self, context: Dict, conversation_history: Dict) -> Dict[str, Any]:
