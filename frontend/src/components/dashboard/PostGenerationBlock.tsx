@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Loader2, PlayCircle, Brain, Sparkles } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import ReactMarkdown from "react-markdown";
@@ -28,51 +28,69 @@ Once the AI council analyzes your project and reaches consensus, the generated p
   );
   
   const [phase, setPhase] = useState<'idle' | 'debating' | 'thinking' | 'complete'>('idle');
-  const [hasShownThinking, setHasShownThinking] = useState(false);
+  const thinkingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const processingDecisionRef = useRef(false);
   
   const { messages: wsMessages } = useWebSocket();
   const sendMessageMutation = useSendChatMessage();
   const { toast } = useToast();
 
-  // Main state machine for council phases
+  // Simplified state machine - just track the most recent decision
   useEffect(() => {
-    // Check for council start
     const hasCouncilStart = wsMessages.some(msg => msg.type === 'council_start');
     const hasCouncilEnd = wsMessages.some(msg => msg.type === 'council_end');
-    const hasDebateMessages = wsMessages.some(msg => msg.type === 'agent_thinking' || msg.type === 'debate');
     const decisionMessages = wsMessages.filter(msg => msg.type === 'decision');
-
-    // Phase 1: Council starts
-    if (hasCouncilStart && phase === 'idle') {
+    const latestDecision = decisionMessages.length > 0 ? decisionMessages[decisionMessages.length - 1] : null;
+    
+    // Phase 1: Council starts - reset everything
+    if (hasCouncilStart && (phase === 'idle' || phase === 'complete')) {
+      if (thinkingTimerRef.current) {
+        clearTimeout(thinkingTimerRef.current);
+        thinkingTimerRef.current = null;
+      }
+      processingDecisionRef.current = false;
       setPhase('debating');
-      setHasShownThinking(false);
       return;
     }
 
-    // Phase 2: Council ends, start thinking animation
-    if (hasCouncilEnd && decisionMessages.length > 0 && phase === 'debating' && !hasShownThinking) {
+    // Phase 2: Decision arrives - show thinking animation then complete
+    if (latestDecision && phase === 'debating' && !processingDecisionRef.current) {
+      const decisionContent = 'decision' in latestDecision ? latestDecision.decision : '';
+      
+      processingDecisionRef.current = true;
       setPhase('thinking');
-      setHasShownThinking(true);
       
-      // Show thinking animation for 7 seconds
-      const thinkingTime = 7000;
-      
-      setTimeout(() => {
-        const latestDecision = decisionMessages[decisionMessages.length - 1];
-        if ('decision' in latestDecision) {
-          setContent(latestDecision.decision);
-          setPhase('complete');
-        }
-      }, thinkingTime);
+      // Show thinking animation for 1.5 seconds then complete
+      thinkingTimerRef.current = setTimeout(() => {
+        setContent(decisionContent);
+        setPhase('complete');
+        thinkingTimerRef.current = null;
+      }, 1500);
       return;
     }
-  }, [wsMessages, phase, hasShownThinking]);
+
+    // Phase 3: If council ends without decision (error case), reset
+    if (hasCouncilEnd && !latestDecision && phase === 'debating') {
+      setContent('# Error\n\nCouncil session ended without generating content. Please try again.');
+      setPhase('idle');
+      processingDecisionRef.current = false;
+      return;
+    }
+  }, [wsMessages, phase]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (thinkingTimerRef.current) {
+        clearTimeout(thinkingTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleStartCouncil = async () => {
     try {
       // Reset to beginning
       setPhase('idle');
-      setHasShownThinking(false);
       
       await sendMessageMutation.mutateAsync({
         content: "@all Create a comprehensive marketing campaign strategy for this project",
@@ -164,24 +182,28 @@ Once the AI council analyzes your project and reaches consensus, the generated p
       <div className="flex-1 min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
           <div className="prose prose-sm dark:prose-invert max-w-none p-4 bg-muted/30 rounded-lg">
-            <ReactMarkdown
-              components={{
-                h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4 text-foreground border-b pb-2" {...props} />,
-                h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3 mt-6 text-foreground" {...props} />,
-                h3: ({node, ...props}) => <h3 className="text-lg font-semibold mb-2 mt-4 text-foreground" {...props} />,
-                p: ({node, ...props}) => <p className="mb-3 leading-relaxed text-foreground/90" {...props} />,
-                ul: ({node, ...props}) => <ul className="mb-4 ml-6 list-disc space-y-2" {...props} />,
-                ol: ({node, ...props}) => <ol className="mb-4 ml-6 list-decimal space-y-2" {...props} />,
-                li: ({node, ...props}) => <li className="text-foreground/90" {...props} />,
-                strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />,
-                em: ({node, ...props}) => <em className="italic text-foreground/80" {...props} />,
-                code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono" {...props} />,
-                pre: ({node, ...props}) => <pre className="bg-muted p-3 rounded-lg overflow-x-auto mb-4" {...props} />,
-                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic my-4" {...props} />,
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+            {phase === 'complete' || content.includes('#') ? (
+              <ReactMarkdown
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold mb-4 text-foreground border-b pb-2" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-3 mt-6 text-foreground" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-lg font-semibold mb-2 mt-4 text-foreground" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-3 leading-relaxed text-foreground/90" {...props} />,
+                  ul: ({node, ...props}) => <ul className="mb-4 ml-6 list-disc space-y-2" {...props} />,
+                  ol: ({node, ...props}) => <ol className="mb-4 ml-6 list-decimal space-y-2" {...props} />,
+                  li: ({node, ...props}) => <li className="text-foreground/90" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />,
+                  em: ({node, ...props}) => <em className="italic text-foreground/80" {...props} />,
+                  code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono" {...props} />,
+                  pre: ({node, ...props}) => <pre className="bg-muted p-3 rounded-lg overflow-x-auto mb-4" {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic my-4" {...props} />,
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            ) : (
+              <div className="whitespace-pre-wrap text-foreground/90">{content}</div>
+            )}
           </div>
         </div>
       </div>

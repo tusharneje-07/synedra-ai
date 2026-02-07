@@ -147,6 +147,21 @@ export function useChatMentions() {
   });
 }
 
+/**
+ * Clear all chats for a project
+ */
+export function useClearChats() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: number) => api.chat.clearChats(projectId),
+    onSuccess: () => {
+      // Invalidate chat history to refetch
+      queryClient.invalidateQueries({ queryKey: ["chat", "history"] });
+    },
+  });
+}
+
 // ============================================================================
 // BRAND CONFIGURATION
 // ============================================================================

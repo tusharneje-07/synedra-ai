@@ -251,7 +251,8 @@ class ConnectionManager:
         decision: str,
         confidence: float = None,
         consensus_level: str = None,
-        votes: Dict[str, Any] = None
+        votes: Dict[str, Any] = None,
+        session_id: str = None
     ):
         """Send final decision to all clients."""
         message = {
@@ -260,6 +261,7 @@ class ConnectionManager:
             "confidence": confidence,
             "consensus_level": consensus_level,
             "votes": votes,
+            "session_id": session_id,
             "timestamp": datetime.utcnow().isoformat()
         }
         await self.broadcast(message)

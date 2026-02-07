@@ -1,7 +1,19 @@
-import { useEffect, useRef, useMemo } from "react";
-import { useChatHistory } from "@/hooks/useAPI";
+import { useEffect, useLayoutEffect, useRef, useMemo } from "react";
+import { useChatHistory, useClearChats } from "@/hooks/useAPI";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ChatPanelProps {
   projectId: number;
@@ -18,34 +30,34 @@ const agentColors: Record<string, string> = {
 const ChatPanel = ({ projectId }: ChatPanelProps) => {
   const { data, isLoading, isFetching } = useChatHistory(projectId);
   const { messages: wsMessages } = useWebSocket();
+  const clearChatsMutation = useClearChats();
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
+
+  const handleClearChats = async () => {
+    try {
+      await clearChatsMutation.mutateAsync(projectId);
+    } catch (error) {
+      console.error("Failed to clear chats:", error);
+    }
+  };
 
   const chatMessages = data?.messages || [];
-  const totalMessages = chatMessages.length + wsMessages.filter(msg => {
-    if (msg.type === 'system' && 
-        (msg.message?.toLowerCase().includes('pong') || 
-         msg.message?.toLowerCase().includes('connected to ai council'))) {
-      return false;
-    }
-    return msg.type === 'agent_thinking' || 
-           msg.type === 'debate' || 
-           msg.type === 'decision' ||
-           msg.type === 'council_start' ||
-           msg.type === 'council_end' ||
-           msg.type === 'user_message';
-  }).length;
-
-  // Auto-scroll only when new messages arrive (not on every render)
-  useEffect(() => {
-    if (totalMessages > prevMessageCountRef.current && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      prevMessageCountRef.current = totalMessages;
-    }
-  }, [totalMessages]);
 
   // Show initial loading only on first load, not on refetches
   const showInitialLoading = isLoading && chatMessages.length === 0;
+  
+  // Scroll to bottom helper
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (scrollRef.current) {
+      const scrollElement = scrollRef.current;
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }, 0);
+    }
+  };
   // Memoize message processing to avoid recalculating on every render
   const allMessages = useMemo(() => [
     // Messages from database (both user and agent messages)
@@ -93,6 +105,39 @@ const ChatPanel = ({ projectId }: ChatPanelProps) => {
       })),
   ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()), [chatMessages, wsMessages]);
 
+  // Auto-scroll using useLayoutEffect for immediate DOM updates
+  useLayoutEffect(() => {
+    const currentMessageCount = allMessages.length;
+    
+    if (currentMessageCount > 0) {
+      // On initial load, scroll immediately
+      if (isInitialLoadRef.current) {
+        scrollToBottom();
+        isInitialLoadRef.current = false;
+      } 
+      // When new messages arrive
+      else if (currentMessageCount > prevMessageCountRef.current) {
+        scrollToBottom();
+      }
+      
+      prevMessageCountRef.current = currentMessageCount;
+    }
+  }, [allMessages]);
+
+  // Additional effect to ensure scroll after data loads
+  useEffect(() => {
+    if (!isLoading && allMessages.length > 0 && isInitialLoadRef.current) {
+      scrollToBottom();
+      isInitialLoadRef.current = false;
+    }
+  }, [isLoading, allMessages.length]);
+
+  // Reset on project change
+  useEffect(() => {
+    isInitialLoadRef.current = true;
+    prevMessageCountRef.current = 0;
+  }, [projectId]);
+
   if (showInitialLoading) {
     return (
       <div className="flex-1 overflow-y-auto pr-1 flex items-center justify-center">
@@ -102,7 +147,49 @@ const ChatPanel = ({ projectId }: ChatPanelProps) => {
   }
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+    <div className="flex-1 flex flex-col">
+      {/* Clear Chats Button */}
+      {allMessages.length > 0 && (
+        <div className="flex justify-end pb-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                disabled={clearChatsMutation.isPending}
+              >
+                {clearChatsMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Clear Chats
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all chat messages for this project.
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearChats}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2 custom-scrollbar">
       {allMessages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
           No messages yet. Start a conversation!
@@ -111,28 +198,29 @@ const ChatPanel = ({ projectId }: ChatPanelProps) => {
         allMessages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'} w-full`}
           >
-            <div className={`${msg.isUser ? 'max-w-[70%]' : 'max-w-[70%]'}`}>
-              <p className="text-sm leading-loose">
+            <div className={`${msg.isUser ? 'max-w-[85%]' : 'max-w-[85%]'} break-words`}>
+              <p className="text-sm leading-relaxed break-words">
                 {msg.isUser ? (
-                  <span className="inline-block bg-[#DCF8C6] dark:bg-[#056162] px-4 py-2 rounded-lg">
+                  <span className="inline-block bg-[#DCF8C6] dark:bg-[#056162] px-4 py-2 rounded-lg break-words overflow-wrap-anywhere">
                     <span className="font-semibold text-[#075E54] dark:text-[#E9EDEF]">You: </span>
-                    <span className="text-[#303030] dark:text-[#E9EDEF]">{msg.message}</span>
+                    <span className="text-[#303030] dark:text-[#E9EDEF] break-words">{msg.message}</span>
                   </span>
                 ) : (
-                  <>
-                    <span className={`font-semibold px-3 py-1 rounded-full ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
+                  <div className="flex flex-col gap-1">
+                    <span className={`font-semibold px-3 py-1 rounded-full inline-block w-fit ${agentColors[msg.agent] || "bg-slate-200 text-slate-700"}`}>
                       {msg.agent}
                     </span>
-                    <span className="text-muted-foreground"> {msg.message}</span>
-                  </>
+                    <span className="text-muted-foreground break-words whitespace-pre-wrap">{msg.message}</span>
+                  </div>
                 )}
               </p>
             </div>
           </div>
         ))
       )}
+    </div>
     </div>
   );
 };

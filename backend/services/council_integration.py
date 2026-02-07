@@ -99,6 +99,7 @@ class CouncilIntegrationService:
         # Generate session ID
         session_id = str(uuid.uuid4())
         self.current_session_id = session_id
+        self.current_session_id = session_id
         
         # Determine participating agents
         agents = trigger_agents or ["trend", "engagement", "brand", "risk", "compliance"]
@@ -174,7 +175,8 @@ class CouncilIntegrationService:
             await broadcaster.broadcast_decision(
                 decision=result.get("decision", "No decision reached"),
                 confidence=result.get("confidence", 0.8),
-                consensus_level=result.get("consensus_level", "majority")
+                consensus_level=result.get("consensus_level", "majority"),
+                votes=result.get("votes")
             )
             
             # End session
@@ -191,18 +193,27 @@ class CouncilIntegrationService:
             }
         
         except Exception as e:
-            logger.error(f"Council session error: {e}")
+            logger.error(f"Council session error: {e}", exc_info=True)  # Added exc_info for stack trace
             
             # Update session as failed
             if db and project_session:
-                project_session.status = "failed"
-                project_session.ended_at = datetime.utcnow()
-                await db.commit()
+                try:
+                    project_session.status = "failed"
+                    project_session.ended_at = datetime.utcnow()
+                    await db.commit()
+                except Exception as db_err:
+                    logger.error(f"Failed to update session status: {db_err}")
             
             # Broadcast error
             await broadcaster.broadcast_system_message(
                 "error",
                 f"Council session failed: {str(e)}"
+            )
+            
+            # ALWAYS send council_end even on error
+            await broadcaster.broadcast_council_end(
+                session_id,
+                f"Session failed: {str(e)}"
             )
             
             # Clean up
@@ -334,104 +345,131 @@ class CouncilIntegrationService:
         - Build consensus through discussion
         - Generate content based on what user asked for
         """
-        logger.info(f"Running mock council session for request: {prompt}")
-        
-        # Extract project context for personalized responses
-        project_name = project_context.get("project_name", "the project") if project_context else "the project"
-        product_details = project_context.get("product_details", {}) if project_context else {}
-        target_details = project_context.get("target_details", {}) if project_context else {}
-        questionnaire = project_context.get("questionnaire_data", {}) if project_context else {}
-        
-        product_name = product_details.get("name", "the product")
-        target_audience = target_details.get("audience", "target audience")
-        primary_goal = questionnaire.get("primary_goal", "brand awareness")
-        platforms = questionnaire.get("platforms", ["LinkedIn", "Twitter"])
-        
-        # Determine what type of content user is asking for
-        prompt_lower = prompt.lower()
-        is_strategy_request = any(word in prompt_lower for word in ["campaign", "strategy", "plan", "approach"])
-        is_post_request = any(word in prompt_lower for word in ["post", "content", "write", "create"])
-        is_analysis_request = any(word in prompt_lower for word in ["analyze", "review", "assess", "evaluate"])
-        
-        # Agent-specific analyses based on their roles AND user's request
-        agent_analyses = {}
-        
-        # Phase 1: Individual Analysis
-        for i, agent_id in enumerate(agents):
-            agent_name = agent_status_service.AGENTS[agent_id]["name"]
-            role = agent_status_service.AGENTS[agent_id]["role"]
+        try:
+            logger.info(f"Starting mock council for prompt: {prompt[:100]}...")
             
-            await asyncio.sleep(0.3)
-            agent_status_service.update_agent_status(agent_id, "thinking", progress=20)
+            # Extract project context for personalized responses
+            project_name = project_context.get("project_name", "the project") if project_context else "the project"
+            product_details = project_context.get("product_details", {}) if project_context else {}
+            target_details = project_context.get("target_details", {}) if project_context else {}
+            questionnaire = project_context.get("questionnaire_data", {}) if project_context else {}
             
-            await broadcaster.broadcast_agent_thinking(
-                agent_id, agent_name,
-                f"Analyzing your request: '{prompt[:100]}...'",
-                step="analysis"
-            )
+            product_name = product_details.get("name", "the product")
+            target_audience = target_details.get("audience", "target audience")
+            primary_goal = questionnaire.get("primary_goal", "brand awareness")
+            platforms = questionnaire.get("platforms", ["LinkedIn", "Twitter"])
             
-            await asyncio.sleep(0.5)
-            agent_status_service.update_agent_status(agent_id, "thinking", progress=60)
+            # Convert prompt to lowercase for keyword matching
+            prompt_lower = prompt.lower()
             
-            # Generate role-specific analysis BASED ON USER REQUEST
-            if agent_id == "trend":
-                if is_post_request:
-                    analysis = f"**Trend Analysis**: For a post about {product_name}, I recommend focusing on current industry trends. {target_audience} engages most with data-driven insights on {platforms[0] if platforms else 'LinkedIn'}. Hook: Start with a compelling statistic or question."
-                elif is_strategy_request:
-                    analysis = f"**Market Trends Analysis**: For {product_name} targeting {target_audience}, I'm seeing strong momentum in {platforms[0] if platforms else 'social media'}. Current data shows {primary_goal} campaigns perform 34% better when leveraging industry thought leadership."
-                else:
-                    analysis = f"**Trend Perspective**: Regarding '{prompt[:80]}...', the market shows that {target_audience} on {platforms[0] if platforms else 'social platforms'} responds best to authentic, value-driven content."
-                    
-            elif agent_id == "engagement":
-                if is_post_request:
-                    analysis = f"**Engagement Strategy**: The post should follow proven structure: compelling hook → value proposition → call-to-action. For {target_audience}, use conversational tone. Optimal length: 150-250 words with visual break (emoji or line breaks)."
-                elif is_strategy_request:
-                    analysis = f"**Engagement Approach**: {target_audience} responds best to authentic storytelling. For {primary_goal}, focus on {platforms[0] if platforms else 'primary platform'} with 2-3 posts weekly and strong CTAs."
-                else:
-                    analysis = f"**Engagement View**: For '{prompt[:80]}...', we should prioritize content that drives conversation. {target_audience} engages more with questions and interactive elements."
-                    
-            elif agent_id == "brand":
-                if is_post_request:
-                    analysis = f"**Brand Voice**: The post must align with {product_name}'s positioning. For {target_audience}, balance professionalism with approachability. Key brand pillars: innovation, trust, value. Avoid overly salesy language."
-                elif is_strategy_request:
-                    analysis = f"**Brand Positioning**: {product_name} should emphasize unique value proposition. Messaging for {target_audience} must balance professionalism with approachability, aligned with {primary_goal}."
-                else:
-                    analysis = f"**Brand Consideration**: Regarding '{prompt[:80]}...', ensure messaging stays consistent with {product_name}'s brand identity and resonates with {target_audience} values."
-                    
-            elif agent_id == "risk":
-                if is_post_request:
-                    analysis = f"**Risk Assessment**: Post should avoid controversial claims. Ensure any statistics are verifiable. For {target_audience}, maintain professional tone. Risk level: Low. Recommend A/B testing different hooks."
-                elif is_strategy_request:
-                    analysis = f"**Risk Profile**: Campaign for {product_name} has low-moderate risk. Key considerations: competitive response timing, platform changes on {platforms[0] if platforms else 'main channel'}. Recommend phased rollout."
-                else:
-                    analysis = f"**Risk Analysis**: For '{prompt[:80]}...', key risks include messaging misalignment and audience expectations. Mitigation: test with small segment first."
-                    
-            else:  # compliance
-                if is_post_request:
-                    analysis = f"**Compliance Check**: Post complies with advertising standards. For {target_audience}, ensure proper disclaimers if making claims. Avoid superlatives without evidence. Data privacy: OK for {platforms[0] if platforms else 'platform'}."
-                elif is_strategy_request:
-                    analysis = f"**Compliance Review**: Campaign complies with advertising standards. For {target_audience}, ensure data privacy messaging and proper disclaimers. {primary_goal.capitalize()} claims must be substantiated."
-                else:
-                    analysis = f"**Compliance Note**: Regarding '{prompt[:80]}...', content passes standard compliance review. No legal concerns for {target_audience} audience."
+            # Extract specific topic from prompt (e.g., "create post about AI EPR" -> "AI EPR")
+            topic_keywords = ["about", "on", "regarding", "for"]
+            user_topic = None
+            for keyword in topic_keywords:
+                if keyword in prompt_lower:
+                    parts = prompt_lower.split(keyword, 1)
+                    if len(parts) > 1:
+                        # Get the part after the keyword and clean it
+                        topic_part = parts[1].strip().split()[0:5]  # First 5 words
+                        user_topic = " ".join(topic_part).strip(".,!?")
+                        break
             
-            agent_analyses[agent_id] = analysis
+            # Use extracted topic or product name as the main subject
+            main_subject = user_topic if user_topic else product_name
             
-            await broadcaster.broadcast_agent_thinking(
-                agent_id, agent_name, analysis, step="completed"
-            )
+            # Determine what type of content user is asking for
+            # Check for post requests first (highest priority)
+            is_post_request = any(word in prompt_lower for word in [
+                "post", "write a post", "create a post", "draft a post",
+                "social media", "linkedin post", "twitter post", "instagram",
+                "content for", "write about", "create content"
+            ])
+            is_strategy_request = any(word in prompt_lower for word in [
+                "campaign", "strategy", "plan", "roadmap", "approach", "framework"
+            ]) and not is_post_request  # Strategy only if not a post request
+            is_analysis_request = any(word in prompt_lower for word in [
+                "analyze", "review", "assess", "evaluate", "analysis"
+            ]) and not is_post_request and not is_strategy_request
             
-            agent_status_service.update_agent_status(agent_id, "completed", progress=100)
-        
-        # Phase 2: Multi-turn Debate with Disagreement
-        await asyncio.sleep(0.4)
-        await broadcaster.broadcast_system_message("info", "Council entering debate phase...")
-        
-        debate_exchanges = []
-        
-        # Round 1: Initial positions
-        for i, agent_id in enumerate(agents[:3]):  # First 3 agents debate
-            agent_name = agent_status_service.AGENTS[agent_id]["name"]
-            await asyncio.sleep(0.5)
+            # Agent-specific analyses based on their roles AND user's request
+            agent_analyses = {}
+            
+            # Phase 1: Individual Analysis
+            for i, agent_id in enumerate(agents):
+                agent_name = agent_status_service.AGENTS[agent_id]["name"]
+                role = agent_status_service.AGENTS[agent_id]["role"]
+                
+                await asyncio.sleep(0.3)
+                agent_status_service.update_agent_status(agent_id, "thinking", progress=20)
+                
+                await broadcaster.broadcast_agent_thinking(
+                    agent_id, agent_name,
+                    f"Analyzing your request: '{prompt[:100]}...'",
+                    step="analysis"
+                )
+                
+                await asyncio.sleep(0.5)
+                agent_status_service.update_agent_status(agent_id, "thinking", progress=60)
+                
+                # Generate role-specific analysis BASED ON USER REQUEST
+                if agent_id == "trend":
+                    if is_post_request:
+                        analysis = f"**Trend Analysis**: For {main_subject} targeting {target_audience}, I see strong engagement potential on {platforms[0] if platforms else 'LinkedIn'}. Current trends: {target_audience} responds to innovation-focused content. Hook idea: Start with '{main_subject} is changing how {target_audience}...'"
+                    elif is_strategy_request:
+                        analysis = f"**Market Trends**: {product_name} campaign for {target_audience} should leverage current momentum in {platforms[0] if platforms else 'social media'}. Data shows {primary_goal} campaigns perform 34% better with thought leadership approach."
+                    else:
+                        analysis = f"**Trend View**: For '{main_subject}', {target_audience} on {platforms[0] if platforms else 'social'} responds to authentic content. Market timing: optimal for {primary_goal} messaging."
+                        
+                elif agent_id == "engagement":
+                    if is_post_request:
+                        analysis = f"**Engagement Strategy**: Post about {main_subject} for {target_audience} needs: Hook ({main_subject}'s impact) → Benefits (solve {target_audience} pain points) → CTA ({primary_goal}). Length: 150-200 words. Tone: Professional yet conversational for {platforms[0] if platforms else 'platform'}."
+                    elif is_strategy_request:
+                        analysis = f"**Engagement Plan**: {target_audience} on {platforms[0] if platforms else 'platform'} engages with {product_name} storytelling. For {primary_goal}: 2-3 weekly posts, mix data + emotion, strong CTAs."
+                    else:
+                        analysis = f"**Engagement**: For {main_subject}, {target_audience} prefers interactive content. Recommend questions, polls, or thought-provoking statements to drive {primary_goal}."
+                        
+                elif agent_id == "brand":
+                    if is_post_request:
+                        analysis = f"**Brand Voice**: The post must align with {product_name}'s positioning. For {target_audience}, balance professionalism with approachability. Key brand pillars: innovation, trust, value. Avoid overly salesy language."
+                    elif is_strategy_request:
+                        analysis = f"**Brand Positioning**: {product_name} should emphasize unique value proposition. Messaging for {target_audience} must balance professionalism with approachability, aligned with {primary_goal}."
+                    else:
+                        analysis = f"**Brand Consideration**: Regarding '{prompt[:80]}...', ensure messaging stays consistent with {product_name}'s brand identity and resonates with {target_audience} values."
+                        
+                elif agent_id == "risk":
+                    if is_post_request:
+                        analysis = f"**Risk Assessment**: Post should avoid controversial claims. Ensure any statistics are verifiable. For {target_audience}, maintain professional tone. Risk level: Low. Recommend A/B testing different hooks."
+                    elif is_strategy_request:
+                        analysis = f"**Risk Profile**: Campaign for {product_name} has low-moderate risk. Key considerations: competitive response timing, platform changes on {platforms[0] if platforms else 'main channel'}. Recommend phased rollout."
+                    else:
+                        analysis = f"**Risk Analysis**: For '{prompt[:80]}...', key risks include messaging misalignment and audience expectations. Mitigation: test with small segment first."
+                        
+                else:  # compliance
+                    if is_post_request:
+                        analysis = f"**Compliance Check**: Post complies with advertising standards. For {target_audience}, ensure proper disclaimers if making claims. Avoid superlatives without evidence. Data privacy: OK for {platforms[0] if platforms else 'platform'}."
+                    elif is_strategy_request:
+                        analysis = f"**Compliance Review**: Campaign complies with advertising standards. For {target_audience}, ensure data privacy messaging and proper disclaimers. {primary_goal.capitalize()} claims must be substantiated."
+                    else:
+                        analysis = f"**Compliance Note**: Regarding '{prompt[:80]}...', content passes standard compliance review. No legal concerns for {target_audience} audience."
+                
+                agent_analyses[agent_id] = analysis
+                
+                await broadcaster.broadcast_agent_thinking(
+                    agent_id, agent_name, analysis, step="completed"
+                )
+                
+                agent_status_service.update_agent_status(agent_id, "completed", progress=100)
+            
+            # Phase 2: Multi-turn Debate with Disagreement
+            await asyncio.sleep(0.4)
+            await broadcaster.broadcast_system_message("info", "Council entering debate phase...")
+            
+            debate_exchanges = []
+            
+            # Round 1: Initial positions
+            for i, agent_id in enumerate(agents[:3]):  # First 3 agents debate
+                agent_name = agent_status_service.AGENTS[agent_id]["name"]
+                await asyncio.sleep(0.5)
             
             agent_status_service.update_agent_status(agent_id, "debating")
             await broadcaster.broadcast_agent_status(agent_id, agent_name, "debating")
@@ -451,97 +489,99 @@ class CouncilIntegrationService:
             
             agent_status_service.update_agent_status(agent_id, "idle")
         
-        # Round 2: Responses and consensus building
-        await asyncio.sleep(0.6)
+            # Round 2: Responses and consensus building
+            await asyncio.sleep(0.6)
         
-        if len(agents) >= 2:
-            # Engagement agent responds to Trend
-            agent_id = "engagement" if "engagement" in agents else agents[1]
-            agent_name = agent_status_service.AGENTS[agent_id]["name"]
+            if len(agents) >= 2:
+                # Engagement agent responds to Trend
+                agent_id = "engagement" if "engagement" in agents else agents[1]
+                agent_name = agent_status_service.AGENTS[agent_id]["name"]
+                
+                await asyncio.sleep(0.5)
+                agent_status_service.update_agent_status(agent_id, "debating")
+                
+                response = f"After reviewing Trend Analyst's points, I agree we should use data - but as supporting evidence, not the hero. Let's combine: data-backed storytelling for {target_audience}."
+                debate_exchanges.append({"agent": agent_name, "position": response})
+                
+                await broadcaster.broadcast_debate(
+                    agent_id, agent_name, response,
+                    responding_to="Trend Analyst", debate_round=2
+                )
+                agent_status_service.update_agent_status(agent_id, "idle")
             
-            await asyncio.sleep(0.5)
-            agent_status_service.update_agent_status(agent_id, "debating")
+            # Risk weighs in with final consideration
+            if "risk" in agents:
+                await asyncio.sleep(0.5)
+                agent_name = agent_status_service.AGENTS["risk"]["name"]
+                
+                agent_status_service.update_agent_status("risk", "debating")
+                
+                risk_input = f"Agreed on the hybrid approach. One caveat: we should phase the rollout. Start with {platforms[0] if platforms else 'safest channel'}, measure response, then scale."
+                debate_exchanges.append({"agent": agent_name, "position": risk_input})
+                
+                await broadcaster.broadcast_debate(
+                    "risk", agent_name, risk_input,
+                    responding_to="Engagement Expert", debate_round=2
+                )
+                agent_status_service.update_agent_status("risk", "idle")
             
-            response = f"After reviewing Trend Analyst's points, I agree we should use data - but as supporting evidence, not the hero. Let's combine: data-backed storytelling for {target_audience}."
-            debate_exchanges.append({"agent": agent_name, "position": response})
+            # Phase 3: Generate Final Content Based on User Request
+            await asyncio.sleep(0.4)
             
-            await broadcaster.broadcast_debate(
-                agent_id, agent_name, response,
-                responding_to="Trend Analyst", debate_round=2
-            )
-            agent_status_service.update_agent_status(agent_id, "idle")
-        
-        # Risk weighs in with final consideration
-        if "risk" in agents:
-            await asyncio.sleep(0.5)
-            agent_name = agent_status_service.AGENTS["risk"]["name"]
+            # Generate appropriate content based on what user asked for
+            if is_post_request:
+                # User wants a social media post - use their specific topic
+                post_subject = main_subject if user_topic else f"{product_name} solution"
+                final_post = f"""# Social Media Post: {main_subject.title()}
+
+    **Product**: {product_name}  
+    **Target Audience**: {target_audience}  
+    **Platform**: {platforms[0] if platforms else "LinkedIn"}  
+    **Goal**: {primary_goal}
+
+    ---
+
+    ## Ready-to-Use Post
+
+    {main_subject.title()} is transforming how {target_audience} work. 🚀
+
+    Why {product_name} matters for {main_subject}:
+
+    ✅ **Innovation**: Cutting-edge technology solving real {target_audience} challenges  
+    ✅ **Results**: Proven impact on {primary_goal} with measurable outcomes  
+    ✅ **Trusted**: Built by experts, chosen by industry leaders
+
+    {product_name} brings {main_subject} to life in ways that actually work.
+
+    👉 **See how it works** for {target_audience} like you.
+
+    ---
+
+    ## Post Analysis
+
+    **Hook Strategy**: Opens with transformation statement to grab attention  
+    **Value Proposition**: Clear benefits using bullet points for scannability  
+    **Call-to-Action**: Direct CTA drives {primary_goal}
+
+    **Engagement Optimization**:
+    - Emoji usage: Moderate (professional yet approachable)
+    - Length: 145 words (optimal for {platforms[0] if platforms else "platform"})
+    - Format: Scannable with white space
+    - Tone: Confident but not pushy
+
+    **Risk Assessment**: ✓ Low risk, professional messaging  
+    **Compliance**: ✓ Approved for {target_audience} audience  
+    **Brand Alignment**: ✓ Maintains {product_name} positioning
+
+    **Recommended Posting Time**: Weekday mornings (9-11 AM) for maximum {target_audience} engagement
+
+    ---
+    **Council Consensus**: Approved with minor A/B testing suggested for hook variations
+    """
             
-            agent_status_service.update_agent_status("risk", "debating")
-            
-            risk_input = f"Agreed on the hybrid approach. One caveat: we should phase the rollout. Start with {platforms[0] if platforms else 'safest channel'}, measure response, then scale."
-            debate_exchanges.append({"agent": agent_name, "position": risk_input})
-            
-            await broadcaster.broadcast_debate(
-                "risk", agent_name, risk_input,
-                responding_to="Engagement Expert", debate_round=2
-            )
-            agent_status_service.update_agent_status("risk", "idle")
-        
-        # Phase 3: Generate Final Content Based on User Request
-        await asyncio.sleep(0.4)
-        
-        # Generate appropriate content based on what user asked for
-        if is_post_request:
-            # User wants a social media post
-            final_post = f"""# Social Media Post for {product_name}
-
-**Target Audience**: {target_audience}  
-**Platform**: {platforms[0] if platforms else "LinkedIn"}  
-**Goal**: {primary_goal}
-
----
-
-## Drafted Post
-
-{product_name} is transforming how {target_audience} achieve their goals. 🚀
-
-Here's why this matters:
-
-✅ **Innovation**: We're solving real problems with cutting-edge technology  
-✅ **Impact**: Proven results that drive {primary_goal}  
-✅ **Trust**: Built by experts, trusted by leaders
-
-The future of your industry starts here.
-
-👉 **Learn more** and see how {product_name} can work for you.
-
----
-
-## Post Analysis
-
-**Hook Strategy**: Opens with transformation statement to grab attention  
-**Value Proposition**: Clear benefits using bullet points for scannability  
-**Call-to-Action**: Direct CTA drives {primary_goal}
-
-**Engagement Optimization**:
-- Emoji usage: Moderate (professional yet approachable)
-- Length: 145 words (optimal for {platforms[0] if platforms else "platform"})
-- Format: Scannable with white space
-- Tone: Confident but not pushy
-
-**Risk Assessment**: ✓ Low risk, professional messaging  
-**Compliance**: ✓ Approved for {target_audience} audience  
-**Brand Alignment**: ✓ Maintains {product_name} positioning
-
-**Recommended Posting Time**: Weekday mornings (9-11 AM) for maximum {target_audience} engagement
-
----
-**Council Consensus**: Approved with minor A/B testing suggested for hook variations
-"""
-        
-        elif is_analysis_request:
-            # User wants analysis
-            final_post = f"""# Analysis: {prompt[:100]}
+            elif is_analysis_request:
+                # User wants analysis
+                final_post = f"""# Analysis: {prompt[:100]}
 
 ## Overview
 The council has analyzed your request regarding {product_name} and {target_audience}.
@@ -589,12 +629,12 @@ The council suggests moving forward with a phased approach, starting with {platf
 **Council Consensus**: Unanimous agreement on approach
 """
         
-        else:
-            # Default to campaign strategy for broader requests
-            final_post = f"""# {product_name} Campaign Strategy
+            else:
+                # Default to campaign strategy for broader requests
+                final_post = f"""# {product_name} Campaign Strategy
 
-## Executive Summary
-After thorough analysis and debate, the council recommends a **data-backed storytelling approach** for {project_name}, targeting {target_audience} with the primary goal of {primary_goal}.
+    ## Executive Summary
+    After thorough analysis and debate, the council recommends a **data-backed storytelling approach** for {project_name}, targeting {target_audience} with the primary goal of {primary_goal}.
 
 ## Strategic Approach
 
@@ -651,17 +691,23 @@ After thorough analysis and debate, the council recommends a **data-backed story
 **Confidence Level**: High (85%)
 """
         
-        return {
-            "decision": final_post,
-            "confidence": 0.85,
-            "consensus_level": "unanimous",
-            "total_messages": len(agents) * 2 + len(debate_exchanges),
-            "votes": {
-                "approve": agents,
-                "approve_with_conditions": [],
-                "abstain": []
+            logger.info(f"Mock council completed successfully. Decision length: {len(final_post)} chars")
+            
+            return {
+                "decision": final_post,
+                "confidence": 0.85,
+                "consensus_level": "unanimous",
+                "total_messages": len(agents) * 2 + len(debate_exchanges),
+                "votes": {
+                    "approve": agents,
+                    "approve_with_conditions": [],
+                    "abstain": []
+                }
             }
-        }
+        
+        except Exception as e:
+            logger.error(f"Error in mock council execution: {e}", exc_info=True)
+            raise  # Re-raise to be caught by main exception handler
 
 
 # Global service instance

@@ -158,22 +158,63 @@ async def get_chat_history(
     Returns:
         Chat history with total count and messages
     """
+    try:
+        # Verify project exists
+        project_service = ProjectService(db)
+        project = await project_service.get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get message history from database
+        chat_svc = ChatService(db)
+        history = await chat_svc.get_message_history(
+            project_id=project_id,
+            session_id=session_id,
+            limit=limit,
+            skip=skip
+        )
+        
+        return history
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching chat history: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error fetching chat history: {str(e)}")
+
+
+@router.delete("/clear")
+async def clear_all_chats(
+    project_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete all chat messages for a project.
+    
+    Args:
+        project_id: Project ID to clear messages for
+    
+    Returns:
+        Number of messages deleted
+    """
     # Verify project exists
     project_service = ProjectService(db)
     project = await project_service.get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    # Get message history from database
+    # Delete all messages
     chat_svc = ChatService(db)
-    history = await chat_svc.get_message_history(
-        project_id=project_id,
-        session_id=session_id,
-        limit=limit,
-        skip=skip
-    )
+    deleted_count = await chat_svc.delete_all_messages(project_id)
     
-    return history
+    return {
+        "success": True,
+        "deleted_count": deleted_count,
+        "message": f"Deleted {deleted_count} messages for project {project_id}"
+    }
 
 
 @router.get("/agents/mentions")
@@ -186,8 +227,8 @@ async def get_agent_mention_syntax():
     return {
         "mentions": {
             agent_id: {
-                "name": chat_service.AGENT_ALIASES.get(agent_id, [f"@{agent_id}"])[0],
-                "aliases": chat_service.AGENT_ALIASES.get(agent_id, []),
+                "name": ChatService.AGENT_ALIASES.get(agent_id, [f"@{agent_id}"])[0],
+                "aliases": ChatService.AGENT_ALIASES.get(agent_id, []),
                 "description": f"Mention {agent_id} agent"
             }
             for agent_id in ["trend", "engagement", "brand", "risk", "compliance", "arbitrator", "all"]

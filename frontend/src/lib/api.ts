@@ -111,6 +111,14 @@ export const api = {
     
     getMentions: () =>
       apiFetch<any>("/chat/agents/mentions"),
+    
+    clearChats: (projectId: number) =>
+      apiFetch<{ success: boolean; deleted_count: number; message: string }>(
+        `/chat/clear?project_id=${projectId}`,
+        {
+          method: "DELETE",
+        }
+      ),
   },
 
   // Brand Configuration

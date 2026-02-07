@@ -193,7 +193,10 @@ class ChatService:
                 "agent_id": msg.agent_id,
                 "agent_role": msg.agent_role,
                 "message_type": msg.message_type,
-                "mentioned_agents": msg.mentioned_agents or [],
+                "mentioned_agents": [
+                    {"agent_id": aid, "agent_name": aid}
+                    for aid in (msg.mentioned_agents or [])
+                ] if msg.mentioned_agents else [],
                 "is_agent_triggered": msg.is_agent_triggered,
                 "timestamp": msg.created_at.isoformat(),
                 "session_id": msg.session_id
@@ -205,6 +208,36 @@ class ChatService:
             "total": total,
             "messages": message_list
         }
+    
+    async def delete_all_messages(self, project_id: int) -> int:
+        """
+        Delete all chat messages for a project.
+        
+        Args:
+            project_id: Project ID to delete messages for
+        
+        Returns:
+            Number of messages deleted
+        """
+        if not self.db:
+            return 0
+        
+        # Get all messages for the project
+        query = select(ChatMessage).where(ChatMessage.project_id == project_id)
+        result = await self.db.execute(query)
+        messages = result.scalars().all()
+        
+        count = len(messages)
+        
+        # Delete all messages
+        for message in messages:
+            await self.db.delete(message)
+        
+        await self.db.commit()
+        
+        logger.info(f"Deleted {count} chat messages for project {project_id}")
+        
+        return count
     
     def get_prompt_for_agents(
         self,

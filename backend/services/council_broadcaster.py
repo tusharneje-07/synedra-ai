@@ -244,8 +244,8 @@ class CouncilEventBroadcaster:
             except Exception as e:
                 logger.error(f"Failed to save decision to database: {e}")
         
-        # Broadcast via WebSocket
-        await manager.send_decision(decision, confidence, consensus_level, votes)
+        # Broadcast via WebSocket with session_id
+        await manager.send_decision(decision, confidence, consensus_level, votes, self.current_session_id)
     
     async def broadcast_system_message(self, level: str, message: str):
         """

@@ -52,6 +52,7 @@ app = FastAPI(
 )
 
 # CORS Configuration - Allow frontend access
+# Must be added before any routes to ensure CORS headers on errors too
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -65,6 +66,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Include routers
