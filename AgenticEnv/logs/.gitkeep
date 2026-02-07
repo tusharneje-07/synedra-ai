@@ -1,0 +1,4 @@
+# Placeholder to keep logs directory in git
+*.log
+*.txt
+!.gitkeep

@@ -1,0 +1,132 @@
+2026-02-07 15:38:40,080 - __main__ - INFO - Initializing Autonomous Council components...
+2026-02-07 15:38:40,082 - db.database - INFO - Database tables created successfully
+2026-02-07 15:38:40,083 - db.database - INFO - Database initialized at: db/council.db
+2026-02-07 15:38:40,083 - graph.debate_manager - INFO - DebateManager initialized: max_rounds=3, convergence_threshold=0.85
+2026-02-07 15:38:40,083 - graph.conflict_resolver - INFO - ConflictResolver initialized
+2026-02-07 15:38:40,087 - db.database - INFO - Database tables created successfully
+2026-02-07 15:38:40,088 - db.database - INFO - Database initialized at: db/council.db
+2026-02-07 15:38:40,088 - memory.memory_manager - INFO - MemoryManager initialized
+2026-02-07 15:38:40,134 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,135 - agents.base_agent - INFO - Loaded behavior spec for TrendPulse Strategist (4768 chars)
+2026-02-07 15:38:40,135 - agents.base_agent - INFO - Initialized TrendPulse Strategist (AgentType.TREND)
+2026-02-07 15:38:40,136 - agents.trend_agent - INFO - TrendAgent initialized and ready to hunt viral opportunities
+2026-02-07 15:38:40,158 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,159 - agents.base_agent - INFO - Loaded behavior spec for Community Magnet Strategist (6530 chars)
+2026-02-07 15:38:40,159 - agents.base_agent - INFO - Initialized Community Magnet Strategist (AgentType.ENGAGEMENT)
+2026-02-07 15:38:40,159 - agents.engagement_agent - INFO - EngagementAgent initialized and ready to build communities
+2026-02-07 15:38:40,181 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,182 - agents.base_agent - INFO - Loaded behavior spec for BrandGuardian Architect (51015 chars)
+2026-02-07 15:38:40,183 - agents.base_agent - INFO - Initialized BrandGuardian Architect (AgentType.BRAND)
+2026-02-07 15:38:40,183 - agents.brand_agent - INFO - BrandAgent initialized and ready to guard brand voice
+2026-02-07 15:38:40,204 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,205 - agents.base_agent - INFO - Loaded behavior spec for Reputation Shield Officer (6498 chars)
+2026-02-07 15:38:40,205 - agents.base_agent - INFO - Initialized Reputation Shield Officer (AgentType.RISK)
+2026-02-07 15:38:40,206 - agents.risk_agent - INFO - RiskAgent initialized and ready to prevent brand damage
+2026-02-07 15:38:40,233 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,234 - agents.base_agent - INFO - Loaded behavior spec for Policy Compliance Guardian (2903 chars)
+2026-02-07 15:38:40,234 - agents.base_agent - INFO - Initialized Policy Compliance Guardian (AgentType.COMPLIANCE)
+2026-02-07 15:38:40,234 - agents.compliance_agent - INFO - ComplianceAgent initialized and ready to enforce compliance
+2026-02-07 15:38:40,263 - agents.base_agent - INFO - LLM Client initialized with model: llama-3.3-70b-versatile
+2026-02-07 15:38:40,264 - agents.base_agent - INFO - Loaded behavior spec for CMO Chief Marketing Officer (9827 chars)
+2026-02-07 15:38:40,264 - agents.base_agent - INFO - Initialized CMO Chief Marketing Officer (AgentType.ARBITRATOR)
+2026-02-07 15:38:40,264 - agents.arbitrator_agent - INFO - ArbitratorAgent (CMO) initialized and ready to make final decisions
+2026-02-07 15:38:40,265 - agents.base_agent - INFO - Full council created with 6 agents: ['trend', 'engagement', 'brand', 'risk', 'compliance', 'arbitrator']
+2026-02-07 15:38:40,265 - graph.council_graph - INFO - Council created with 6 agents
+2026-02-07 15:38:40,282 - graph.council_graph - INFO - CouncilGraph initialized and ready
+2026-02-07 15:38:40,283 - pipeline.trend_monitor - INFO - TrendMonitor initialized: 5 platforms, threshold=0.6
+2026-02-07 15:38:40,287 - pipeline.content_generator - INFO - ContentGenerator initialized
+2026-02-07 15:38:40,287 - memory.memory_manager - INFO - MemoryManager initialized
+2026-02-07 15:38:40,287 - pipeline.sentiment_analyzer - INFO - SentimentAnalyzer initialized
+2026-02-07 15:38:40,288 - __main__ - INFO - ✓ Council initialized for: Your Brand
+2026-02-07 15:38:40,288 - __main__ - INFO -   Brand keywords: AI, innovation
+2026-02-07 15:38:40,288 - __main__ - INFO -   Industry keywords: technology, software
+2026-02-07 15:38:40,289 - __main__ - INFO - ======================================================================
+2026-02-07 15:38:40,289 - __main__ - INFO - MANUAL TRIGGER: AI Innovation Test
+2026-02-07 15:38:40,289 - __main__ - INFO - ======================================================================
+2026-02-07 15:38:40,289 - pipeline.scheduler - INFO - AutonomousScheduler initialized: mode=manual, interval=30min
+2026-02-07 15:38:40,289 - pipeline.scheduler - INFO - Manual trigger: AI Innovation Test
+2026-02-07 15:38:40,289 - graph.council_graph - INFO - Running council for topic: AI Innovation Test
+2026-02-07 15:38:40,299 - graph.council_graph - INFO - Initializing council for topic: AI Innovation Test
+2026-02-07 15:38:40,301 - graph.council_graph - INFO - Starting analysis phase
+2026-02-07 15:38:40,301 - graph.council_graph - INFO -   trend analyzing...
+2026-02-07 15:38:40,614 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:40,615 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98596, Requested 2110. Please try again in 10m9.984s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:40,615 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:38:41,833 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:41,834 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98595, Requested 2110. Please try again in 10m9.12s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:41,835 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:38:43,901 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:43,902 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98592, Requested 2110. Please try again in 10m6.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:43,902 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:38:43,902 - graph.council_graph - ERROR - Error in AgentType.TREND analysis: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98592, Requested 2110. Please try again in 10m6.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:43,902 - graph.council_graph - INFO -   engagement analyzing...
+2026-02-07 15:38:44,089 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:44,091 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98592, Requested 2510. Please try again in 15m52.128s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:44,091 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:38:45,225 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:45,226 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98591, Requested 2510. Please try again in 15m51.264s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:45,226 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:38:47,336 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:47,337 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98588, Requested 2510. Please try again in 15m48.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:47,338 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:38:47,338 - graph.council_graph - ERROR - Error in AgentType.ENGAGEMENT analysis: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98588, Requested 2510. Please try again in 15m48.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:47,339 - graph.council_graph - INFO -   brand analyzing...
+2026-02-07 15:38:47,612 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:47,613 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98588, Requested 14519. Please try again in 3h8m44.447999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:47,614 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:38:50,098 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:50,099 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98585, Requested 14519. Please try again in 3h8m41.856s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:50,100 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:38:53,543 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:53,544 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98581, Requested 14519. Please try again in 3h8m38.4s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:53,545 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:38:53,545 - graph.council_graph - ERROR - Error in AgentType.BRAND analysis: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98581, Requested 14519. Please try again in 3h8m38.4s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:53,546 - graph.council_graph - INFO -   risk analyzing...
+2026-02-07 15:38:53,746 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:53,748 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98581, Requested 2598. Please try again in 16m58.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:53,748 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:38:54,857 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:54,858 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98580, Requested 2598. Please try again in 16m57.792s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:54,859 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:38:57,007 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:57,008 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98577, Requested 2598. Please try again in 16m55.2s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:57,009 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:38:57,010 - graph.council_graph - ERROR - Error in AgentType.RISK analysis: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98577, Requested 2598. Please try again in 16m55.2s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:57,010 - graph.council_graph - INFO -   compliance analyzing...
+2026-02-07 15:38:57,142 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:57,143 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98577, Requested 1626. Please try again in 2m55.392s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:57,143 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:38:58,244 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:38:58,245 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98576, Requested 1626. Please try again in 2m54.528s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:38:58,246 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:39:00,335 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:39:00,336 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98573, Requested 1626. Please try again in 2m51.936s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:00,336 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:39:00,336 - graph.council_graph - ERROR - Error in AgentType.COMPLIANCE analysis: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98573, Requested 1626. Please try again in 2m51.936s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:00,336 - graph.council_graph - INFO - Analysis complete: 0 proposals, consensus=0.00
+2026-02-07 15:39:00,338 - graph.council_graph - INFO - Detecting conflicts
+2026-02-07 15:39:00,338 - graph.conflict_resolver - INFO - Not enough proposals to detect conflicts
+2026-02-07 15:39:00,338 - graph.council_graph - INFO - Conflicts detected: 0 total, 0 critical
+2026-02-07 15:39:00,338 - graph.council_graph - INFO - Debate required: consensus=0.00, critical_conflicts=0
+2026-02-07 15:39:00,339 - graph.council_graph - INFO - Starting debate phase
+2026-02-07 15:39:00,339 - graph.debate_manager - INFO - Starting debate orchestration for: AI Innovation Test
+2026-02-07 15:39:00,340 - graph.debate_manager - WARNING - No initial proposals to debate
+2026-02-07 15:39:00,340 - graph.council_graph - INFO - Debate complete: None rounds, final consensus=0.00
+2026-02-07 15:39:00,340 - graph.council_graph - INFO - Starting arbitration
+2026-02-07 15:39:00,633 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:39:00,635 - agents.base_agent - WARNING - LLM generation attempt 1 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98573, Requested 3487. Please try again in 29m39.84s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:00,635 - agents.base_agent - INFO - Retrying in 1 seconds...
+2026-02-07 15:39:01,833 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:39:01,835 - agents.base_agent - WARNING - LLM generation attempt 2 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98572, Requested 3487. Please try again in 29m38.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:01,835 - agents.base_agent - INFO - Retrying in 2 seconds...
+2026-02-07 15:39:03,980 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2026-02-07 15:39:03,981 - agents.base_agent - WARNING - LLM generation attempt 3 failed: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98569, Requested 3487. Please try again in 29m36.383999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:03,981 - agents.base_agent - ERROR - All 3 attempts failed
+2026-02-07 15:39:03,982 - graph.council_graph - ERROR - Error in arbitration: LLM generation failed after 3 attempts: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01k4s6dtv6e529v2maz5z0gfra` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98569, Requested 3487. Please try again in 29m36.383999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+2026-02-07 15:39:03,983 - graph.council_graph - INFO - Finalizing council decision
+2026-02-07 15:39:03,984 - graph.council_graph - INFO - Council decision finalized: unknown
+2026-02-07 15:39:03,984 - graph.council_graph - INFO - Council workflow completed successfully
+2026-02-07 15:39:03,985 - __main__ - INFO - ======================================================================
+2026-02-07 15:39:03,985 - __main__ - INFO - COUNCIL DECISION
+2026-02-07 15:39:03,985 - __main__ - INFO - ======================================================================
+2026-02-07 15:39:03,985 - __main__ - INFO - Decision: reject
