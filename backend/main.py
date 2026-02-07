@@ -15,7 +15,10 @@ import logging
 
 from config import settings
 from database.base import init_db
-from routes import agents, brand_config, chat, websocket, council
+from routes import agents, brand_config, chat, websocket, council, project
+
+# Import all models so SQLAlchemy can detect them
+import models  # This imports all models from models/__init__.py
 
 # Configure logging
 logging.basicConfig(
@@ -70,6 +73,7 @@ app.include_router(brand_config.router, prefix="/api/config", tags=["Configurati
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(websocket.router, prefix="/api/ws", tags=["WebSocket"])
 app.include_router(council.router, prefix="/api/council", tags=["Council"])
+app.include_router(project.router)  # Already has /api/projects prefix
 
 
 @app.get("/")
