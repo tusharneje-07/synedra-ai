@@ -11,7 +11,7 @@ import ChatPanel from "@/components/dashboard/ChatPanel";
 import ChatInput from "@/components/dashboard/ChatInput";
 import ThemeToggle from "@/components/dashboard/ThemeToggle";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Dashboard = () => {
@@ -78,7 +78,17 @@ const Dashboard = () => {
             </Badge>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/setting')}
+            className="h-8 w-8 rounded-lg"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content */}
