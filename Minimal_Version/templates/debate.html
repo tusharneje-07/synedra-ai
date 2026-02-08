@@ -30,6 +30,9 @@
                 <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Create Post
                 </a>
+                <a href="/history" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    History
+                </a>
                 <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Saved Posts
                 </a>
@@ -89,10 +92,18 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-4">
+        <div class="flex gap-4 flex-wrap">
             <a href="/create-post" class="btn btn-outline h-10 px-6">
                 Create Another Post
             </a>
+            <button id="retry-debate-btn" class="btn btn-secondary h-10 px-6 flex items-center gap-2">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Retry Debate</span>
+            </button>
             <button id="view-results-btn" class="btn btn-primary h-10 px-6 hidden">
                 View Generated Posts
             </button>
@@ -108,6 +119,42 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (postInputId) {
                 loadDebateData(postInputId);
+            }
+            
+            // Retry debate functionality
+            const retryBtn = document.getElementById('retry-debate-btn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', async function() {
+                    if (!postInputId) return;
+                    
+                    if (confirm('This will restart the entire debate process. Continue?')) {
+                        retryBtn.disabled = true;
+                        retryBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg><span>Retrying...</span>';
+                        
+                        try {
+                            // Trigger debate again
+                            const response = await fetch(`/api/retry-debate/${postInputId}`, {
+                                method: 'POST'
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                // Reload the page to show new debate
+                                window.location.reload();
+                            } else {
+                                showMessage(data.message || 'Failed to retry debate', 'error');
+                                retryBtn.disabled = false;
+                                retryBtn.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Retry Debate</span>';
+                            }
+                        } catch (error) {
+                            console.error('Error retrying debate:', error);
+                            showMessage('Error retrying debate', 'error');
+                            retryBtn.disabled = false;
+                            retryBtn.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Retry Debate</span>';
+                        }
+                    }
+                });
             }
         });
     </script>

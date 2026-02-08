@@ -1020,7 +1020,7 @@ function viewPostDetail(index) {
             <div class="flex items-center justify-between pt-4 border-t border-border">
                 <span class="text-sm text-muted-foreground">Variation ${post.variation_number} | Score: ${post.final_score?.toFixed(0) || 'N/A'}%</span>
                 <div class="flex gap-2">
-                    <button onclick="savePost(${post.id})" 
+                    <button onclick="savePost(${post.id}, ${index})" 
                         class="btn btn-primary h-9 px-4 flex items-center gap-2">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                         <span>Save Post</span>
@@ -1229,9 +1229,130 @@ function closePostModal() {
 }
 
 // Save post to database
-async function savePost(postId) {
-    if (!postId) {
-        showMessage('Invalid post ID', 'error');
+// Generate default post name from content
+function generatePostName(post) {
+    if (!post) return 'Untitled Post';
+    
+    // Try to use title first
+    if (post.post_title && post.post_title.trim()) {
+        // Limit to first 50 chars and clean up
+        let name = post.post_title.trim();
+        if (name.length > 50) {
+            name = name.substring(0, 50).trim() + '...';
+        }
+        return name;
+    }
+    
+    // Fallback to content if no title
+    if (post.post_content && post.post_content.trim()) {
+        let name = post.post_content.trim();
+        // Remove newlines and extra spaces
+        name = name.replace(/\s+/g, ' ');
+        // Take first sentence or 50 chars
+        const sentenceEnd = name.indexOf('.');
+        if (sentenceEnd > 0 && sentenceEnd < 50) {
+            name = name.substring(0, sentenceEnd);
+        } else if (name.length > 50) {
+            name = name.substring(0, 50).trim() + '...';
+        }
+        return name;
+    }
+    
+    return 'Untitled Post';
+}
+
+// Show save post modal with editable name
+function showSavePostModal(postId, postIndex) {
+    const post = window.generatedPosts[postIndex];
+    if (!post) {
+        showMessage('Post data not found', 'error');
+        return;
+    }
+    
+    const defaultName = generatePostName(post);
+    
+    // Create modal HTML
+    const modalHTML = `
+        <div id="save-post-modal" class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+            <div class="fixed left-[50%] top-[50%] w-[95vw] max-w-lg translate-x-[-50%] translate-y-[-50%]">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold tracking-tight">Save Post</h3>
+                        <button onclick="closeSavePostModal()" 
+                            class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="post-name-input" class="block text-sm font-medium mb-2">
+                                Post Name <span class="text-muted-foreground">(editable)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="post-name-input" 
+                                value="${defaultName.replace(/"/g, '&quot;')}" 
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                placeholder="Enter a name for this post"
+                            />
+                        </div>
+                        
+                        <div class="rounded-lg border border-border bg-muted/30 p-3">
+                            <p class="text-sm text-muted-foreground mb-1">Preview:</p>
+                            <p class="text-sm font-medium line-clamp-2">${post.post_title || post.post_content.substring(0, 100)}</p>
+                        </div>
+                        
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="confirmSavePost(${postId})" 
+                                class="btn btn-primary flex-1 h-10">
+                                Save Post
+                            </button>
+                            <button onclick="closeSavePostModal()" 
+                                class="btn btn-outline flex-1 h-10">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    const existingModal = document.getElementById('save-post-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Focus on input
+    setTimeout(() => {
+        const input = document.getElementById('post-name-input');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 100);
+}
+
+// Close save post modal
+function closeSavePostModal() {
+    const modal = document.getElementById('save-post-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Confirm save with custom name
+async function confirmSavePost(postId) {
+    const input = document.getElementById('post-name-input');
+    const customName = input ? input.value.trim() : '';
+    
+    if (!customName) {
+        showMessage('Please enter a name for the post', 'error');
         return;
     }
     
@@ -1240,12 +1361,16 @@ async function savePost(postId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                custom_name: customName
+            })
         });
         
         const data = await response.json();
         
         if (data.success) {
+            closeSavePostModal();
             showMessage('Post saved successfully! View it in Saved Posts.', 'success');
         } else {
             showMessage(data.message || 'Failed to save post', 'error');
@@ -1255,6 +1380,18 @@ async function savePost(postId) {
         showMessage('Error saving post', 'error');
     }
 }
+
+// Legacy function for backward compatibility
+async function savePost(postId, postIndex) {
+    if (!postId) {
+        showMessage('Invalid post ID', 'error');
+        return;
+    }
+    
+    // Show modal with editable name
+    showSavePostModal(postId, postIndex);
+}
+
 
 // Load all saved posts
 async function loadSavedPosts() {
@@ -1290,11 +1427,14 @@ function displaySavedPosts(posts) {
             year: 'numeric'
         });
         
+        // Use custom_name if available, otherwise fallback to post_title
+        const displayName = post.custom_name || post.post_title;
+        
         return `
             <div class="card overflow-hidden hover:border-primary transition-colors">
                 <div class="bg-gradient-to-r from-primary/10 to-accent/10 border-b border-border p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-xl font-bold">${post.brand_name}</h3>
+                        <h3 class="text-xl font-bold line-clamp-1" title="${displayName}">${displayName}</h3>
                         <div class="rounded-full bg-primary/20 px-3 py-1">
                             <span class="text-sm font-semibold">${post.final_score?.toFixed(0) || 'N/A'}%</span>
                         </div>
@@ -1310,13 +1450,13 @@ function displaySavedPosts(posts) {
                 
                 <div class="p-6 space-y-4">
                     <div>
-                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Topic</h4>
-                        <p class="text-sm">${post.post_topic}</p>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Brand</h4>
+                        <p class="text-sm">${post.brand_name}</p>
                     </div>
                     
                     <div>
-                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Title</h4>
-                        <p class="font-semibold">${post.post_title}</p>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Topic</h4>
+                        <p class="text-sm">${post.post_topic}</p>
                     </div>
                     
                     <div>
@@ -1497,6 +1637,299 @@ function closeSavedPostModal() {
 }
 
 // ========================================
+// HISTORY FUNCTIONS
+// ========================================
+
+// Load all history
+async function loadHistory() {
+    try {
+        const response = await fetch(`${API_BASE}/history`);
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.history.length > 0) {
+                displayHistory(data.history);
+            } else {
+                document.getElementById('history-container').classList.add('hidden');
+                document.getElementById('no-history').classList.remove('hidden');
+            }
+        } else {
+            showMessage('Error loading history', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        showMessage('Error loading history', 'error');
+    }
+}
+
+// Display history timeline
+function displayHistory(history) {
+    const container = document.getElementById('history-container');
+    if (!container) return;
+    
+    container.innerHTML = history.map(item => {
+        const createdDate = new Date(item.created_at).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const statusClass = item.posts_generated > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
+        const statusText = item.posts_generated > 0 ? 'Completed' : 'Rejected';
+        
+        return `
+            <div class="card overflow-hidden hover:border-primary transition-colors">
+                <div class="bg-gradient-to-r from-muted/50 to-muted/30 border-b border-border p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/20">
+                                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold">${item.brand_name}</h3>
+                                <p class="text-xs text-muted-foreground">${createdDate}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs px-3 py-1 rounded-full ${statusClass} font-semibold">${statusText}</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Topic</h4>
+                        <p class="text-sm font-semibold line-clamp-2">${item.post_topic}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="text-muted-foreground">Platform:</span>
+                            <p class="font-medium text-primary">${item.target_platform}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted-foreground">Type:</span>
+                            <p class="font-medium">${item.content_type}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted-foreground">Objective:</span>
+                            <p class="font-medium">${item.post_objective}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-3 border-t border-border">
+                        <div class="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                ${item.debate_count || 0} debates
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                ${item.posts_generated || 0} posts
+                            </span>
+                        </div>
+                        <button onclick="viewHistoryDetail(${item.id})" 
+                            class="btn btn-primary h-9 px-4 text-sm">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// View detailed history
+async function viewHistoryDetail(postInputId) {
+    try {
+        const response = await fetch(`${API_BASE}/history/${postInputId}`);
+        const data = await response.json();
+        
+        if (!data.success || !data.history) {
+            showMessage('Could not load history details', 'error');
+            return;
+        }
+        
+        const history = data.history;
+        const modal = document.getElementById('history-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('history-modal-content');
+        
+        modalTitle.textContent = `${history.brand_name} - ${history.post_topic}`;
+        
+        // Build debate history HTML
+        let debateHtml = '';
+        if (history.debates && history.debates.length > 0) {
+            debateHtml = `
+                <div class="mb-8">
+                    <h4 class="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>Agent Debate History (${history.debates.length} entries)</span>
+                    </h4>
+                    <div class="space-y-3">
+                        ${history.debates.map(debate => `
+                            <div class="rounded-lg border border-border bg-muted/30 p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-primary">${debate.agent_name}</span>
+                                        <span class="text-xs text-muted-foreground">(${debate.agent_role})</span>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded ${
+                                        debate.vote === 'APPROVE' ? 'bg-green-500/20 text-green-400' :
+                                        debate.vote === 'REJECT' ? 'bg-red-500/20 text-red-400' :
+                                        'bg-yellow-500/20 text-yellow-400'
+                                    }">${debate.vote}</span>
+                                </div>
+                                ${debate.analysis ? `<p class="text-sm text-muted-foreground mb-2 whitespace-pre-wrap">${debate.analysis}</p>` : ''}
+                                ${debate.reasoning ? `
+                                    <div class="text-sm mt-2">
+                                        <span class="font-medium text-primary">Reasoning:</span>
+                                        <span class="text-muted-foreground whitespace-pre-wrap">${debate.reasoning}</span>
+                                    </div>
+                                ` : ''}
+                                ${debate.concerns ? `
+                                    <div class="text-sm mt-2">
+                                        <span class="font-medium text-yellow-400">Concerns:</span>
+                                        <span class="text-muted-foreground whitespace-pre-wrap">${debate.concerns}</span>
+                                    </div>
+                                ` : ''}
+                                ${debate.score !== null ? `
+                                    <div class="text-sm mt-2">
+                                        <span class="font-medium">Score:</span>
+                                        <span class="text-primary font-semibold">${debate.score}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Build generated posts HTML
+        let postsHtml = '';
+        if (history.generated_posts && history.generated_posts.length > 0) {
+            postsHtml = `
+                <div class="mb-8">
+                    <h4 class="text-xl font-semibold text-primary mb-4">Generated Posts (${history.generated_posts.length})</h4>
+                    <div class="space-y-6">
+                        ${history.generated_posts.map(post => `
+                            <div class="rounded-lg border border-border bg-card p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h5 class="text-lg font-semibold">Variation ${post.variation_number}</h5>
+                                    <span class="text-sm px-3 py-1 rounded-full bg-primary/20 text-primary font-semibold">
+                                        ${post.final_score?.toFixed(0) || 'N/A'}%
+                                    </span>
+                                </div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h6 class="text-sm font-medium text-muted-foreground mb-1">Title</h6>
+                                        <p class="font-semibold">${post.post_title}</p>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-sm font-medium text-muted-foreground mb-1">Content</h6>
+                                        <div class="text-sm whitespace-pre-wrap bg-muted/50 rounded p-3">${post.post_content}</div>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-sm font-medium text-muted-foreground mb-1">Hashtags</h6>
+                                        <p class="text-sm text-primary">${post.hashtags}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            postsHtml = `
+                <div class="rounded-lg border border-red-500/30 bg-red-500/5 p-6 mb-8">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <div>
+                            <h5 class="text-lg font-semibold text-red-400 mb-1">No Posts Generated</h5>
+                            <p class="text-sm text-muted-foreground">The AI agents rejected this post proposal during the debate.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        modalContent.innerHTML = `
+            <div class="space-y-6">
+                <!-- Original Requirements -->
+                <div class="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                    <h4 class="text-lg font-semibold text-primary mb-3">Original Requirements</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium">Topic:</span>
+                            <p class="text-muted-foreground">${history.post_topic}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Objective:</span>
+                            <p class="text-muted-foreground">${history.post_objective}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Platform:</span>
+                            <p class="text-muted-foreground">${history.target_platform}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Content Type:</span>
+                            <p class="text-muted-foreground">${history.content_type}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-medium">Key Message:</span>
+                            <p class="text-muted-foreground">${history.key_message}</p>
+                        </div>
+                        ${history.call_to_action ? `
+                            <div class="col-span-2">
+                                <span class="font-medium">Call to Action:</span>
+                                <p class="text-muted-foreground">${history.call_to_action}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${debateHtml}
+                ${postsHtml}
+                
+                <div class="flex justify-end gap-4 pt-4 border-t border-border">
+                    <button onclick="closeHistoryModal()" class="btn btn-outline h-9 px-6">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modal.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading history detail:', error);
+        showMessage('Error loading history details', 'error');
+    }
+}
+
+// Close history modal
+function closeHistoryModal() {
+    const modal = document.getElementById('history-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// ========================================
 // Global Functions
 // ========================================
 
@@ -1516,3 +1949,6 @@ window.savePost = savePost;
 window.loadSavedPosts = loadSavedPosts;
 window.viewSavedPostDetail = viewSavedPostDetail;
 window.closeSavedPostModal = closeSavedPostModal;
+window.loadHistory = loadHistory;
+window.viewHistoryDetail = viewHistoryDetail;
+window.closeHistoryModal = closeHistoryModal;

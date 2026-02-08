@@ -30,6 +30,9 @@
                 <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground">
                     Create Post
                 </a>
+                <a href="/history" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    History
+                </a>
                 <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Saved Posts
                 </a>
@@ -182,11 +185,11 @@
 
     <!-- Enhanced Loading Modal with Live Agent Debate -->
     <div id="loading-modal" class="hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-md">
-        <div class="fixed inset-4 overflow-y-auto">
-            <div class="min-h-full flex items-center justify-center p-4">
-                <div class="card p-6 lg:p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-                    <div class="space-y-6">
-                        <!-- Header -->
+        <div class="fixed inset-4 overflow-hidden">
+            <div class="h-full flex items-center justify-center p-4">
+                <div class="card w-full max-w-[95vw] h-[90vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-border flex-shrink-0">
                         <div class="text-center space-y-3">
                             <div class="flex justify-center">
                                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -200,12 +203,17 @@
                         </div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-muted rounded-full h-2">
+                        <div class="w-full bg-muted rounded-full h-2 mt-4">
                             <div id="progress-bar" class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
+                    </div>
 
-                        <!-- Agent Debate Grid - 3 Columns -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Two Column Layout -->
+                    <div class="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                        <!-- Left Column: Agent Cards & Status -->
+                        <div class="space-y-6 overflow-y-auto pr-2">
+                            <!-- Agent Debate Grid - 2 Columns in Left Pane -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"
                             <!-- TrendAgent -->
                             <div id="agent-card-trend" class="agent-card rounded-lg border border-border bg-card p-4 transition-all duration-300 opacity-50">
                                 <div class="flex items-start gap-3">
@@ -366,18 +374,18 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Debate Conversation Log -->
-                        <div class="space-y-3">
-                            <h4 class="font-semibold text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                </svg>
-                                Live Debate Conversation
-                            </h4>
-                            <div id="debate-conversation" class="space-y-2 max-h-96 overflow-y-auto rounded-lg border border-border bg-muted/30 p-4">
-                                <p class="text-sm text-muted-foreground italic">Conversation will appear here as agents debate...</p>
-                            </div>
+                    <!-- Right Column: Live Debate Conversation -->
+                    <div class="flex flex-col h-full overflow-hidden">
+                        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-border flex-shrink-0">
+                            <svg class="w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <h4 class="font-semibold">Live Debate Conversation</h4>
+                        </div>
+                        <div id="debate-conversation" class="flex-1 overflow-y-auto space-y-2 rounded-lg border border-border bg-muted/30 p-4 min-h-0">
+                            <p class="text-sm text-muted-foreground italic">Conversation will appear here as agents debate...</p>
                         </div>
                     </div>
                 </div>

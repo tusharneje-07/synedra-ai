@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saved Posts - Multi-Agent Post Generator</title>
+    <title>History - Multi-Agent Post Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -30,10 +30,10 @@
                 <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Create Post
                 </a>
-                <a href="/history" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                <a href="/history" class="transition-colors hover:text-foreground/80 text-foreground">
                     History
                 </a>
-                <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground">
+                <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Saved Posts
                 </a>
                 <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
@@ -48,33 +48,33 @@
         <!-- Header -->
         <div class="flex flex-col space-y-2 mb-8">
             <h1 class="scroll-m-20 text-3xl font-extrabold tracking-tight lg:text-4xl">
-                Saved Posts
+                Generation History
             </h1>
             <p class="text-lg text-muted-foreground">
-                View your saved AI-generated posts with complete debate history
+                View all your past post generation attempts with complete debate details
             </p>
         </div>
 
         <!-- Status Message -->
         <div id="status-message" class="hidden mb-6"></div>
 
-        <!-- Posts Grid -->
-        <div id="saved-posts-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <!-- History Timeline -->
+        <div id="history-container" class="space-y-4 mb-8">
             <!-- Loading indicator -->
-            <div class="col-span-full flex items-center justify-center py-12">
+            <div class="flex items-center justify-center py-12">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
         </div>
 
-        <!-- No Posts Message -->
-        <div id="no-saved-posts" class="hidden">
+        <!-- No History Message -->
+        <div id="no-history" class="hidden">
             <div class="card p-12 text-center">
                 <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
-                <h3 class="text-lg font-semibold mb-2">No Saved Posts</h3>
+                <h3 class="text-lg font-semibold mb-2">No History Yet</h3>
                 <p class="text-sm text-muted-foreground mb-6">
-                    You haven't saved any posts yet. Save your favorite AI-generated posts to view them here.
+                    You haven't generated any posts yet. Create your first post to see it here.
                 </p>
                 <div class="flex gap-4 justify-center">
                     <a href="/create-post" class="btn btn-primary h-10 px-6">
@@ -85,22 +85,22 @@
         </div>
     </main>
 
-    <!-- Post Detail Modal -->
-    <div id="saved-post-modal" class="hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div class="fixed left-[50%] top-[50%] max-h-[85vh] w-[95vw] max-w-5xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto">
+    <!-- History Detail Modal -->
+    <div id="history-modal" class="hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div class="fixed left-[50%] top-[50%] max-h-[85vh] w-[95vw] max-w-6xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto">
             <div class="card p-6 lg:p-8">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-2xl font-semibold tracking-tight" id="modal-title">
-                        Saved Post Details
+                        History Details
                     </h3>
-                    <button onclick="closeSavedPostModal()" 
+                    <button onclick="closeHistoryModal()" 
                         class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
-                <div id="saved-modal-content">
+                <div id="history-modal-content">
                     <!-- Modal content will be populated here -->
                 </div>
             </div>
@@ -110,7 +110,7 @@
     <script src="/static/js/scripts.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            loadSavedPosts();
+            loadHistory();
         });
     </script>
 </body>

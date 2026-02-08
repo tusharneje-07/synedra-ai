@@ -68,6 +68,11 @@ def saved_posts():
     """Saved posts page - View all saved posts"""
     return render_template('saved-posts.html')
 
+@app.route('/history')
+def history():
+    """History page - View all past generations"""
+    return render_template('history.html')
+
 @app.route('/settings')
 def settings():
     """Settings page - Configuration management"""
@@ -511,8 +516,12 @@ def get_generated_posts(post_input_id):
 def save_post(post_id):
     """Save a post with all its context and debate data"""
     try:
-        # Mark post as saved in database
-        result = db.save_post(post_id)
+        # Get custom name from request body if provided
+        data = request.get_json() or {}
+        custom_name = data.get('custom_name', None)
+        
+        # Mark post as saved in database with optional custom name
+        result = db.save_post(post_id, custom_name)
         
         if result:
             return jsonify({
@@ -566,6 +575,86 @@ def get_saved_post_detail(post_id):
             }), 404
     except Exception as e:
         logger.error(f"Error fetching saved post detail {post_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    """Get all post generation history"""
+    try:
+        history = db.get_post_history()
+        return jsonify({
+            'success': True,
+            'history': history,
+            'count': len(history)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching history: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/history/<int:post_input_id>', methods=['GET'])
+def get_history_detail(post_input_id):
+    """Get detailed history for a specific post input"""
+    try:
+        history_detail = db.get_history_detail(post_input_id)
+        
+        if history_detail:
+            return jsonify({
+                'success': True,
+                'history': history_detail
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'History not found'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error fetching history detail {post_input_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/retry-debate/<int:post_input_id>', methods=['POST'])
+def retry_debate(post_input_id):
+    """Retry the debate for a post input"""
+    try:
+        # Get the original post input data
+        post_input = db.get_post_input(post_input_id)
+        
+        if not post_input:
+            return jsonify({
+                'success': False,
+                'message': 'Post input not found'
+            }), 404
+        
+        # Clear previous debates and generated posts for this input
+        db.clear_post_results(post_input_id)
+        
+        # Trigger new debate (async)
+        from utils.debate_orchestrator import DebateOrchestrator
+        debate_orchestrator = DebateOrchestrator()
+        
+        # Run debate asynchronously
+        import threading
+        thread = threading.Thread(
+            target=debate_orchestrator.run_debate,
+            args=(post_input_id, post_input)
+        )
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Debate retry initiated',
+            'post_input_id': post_input_id
+        })
+    except Exception as e:
+        logger.error(f"Error retrying debate for {post_input_id}: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

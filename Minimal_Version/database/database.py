@@ -118,6 +118,11 @@ class Database:
             cursor.execute('ALTER TABLE generated_posts ADD COLUMN saved_at TIMESTAMP')
         except sqlite3.OperationalError:
             pass  # Column already exists
+        
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN custom_name TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
             
         conn.commit()
         conn.close()
@@ -371,16 +376,25 @@ class Database:
         
         return posts
     
-    def save_post(self, post_id: int) -> bool:
-        """Mark a post as saved by adding timestamp to saved_at"""
+    def save_post(self, post_id: int, custom_name: str = None) -> bool:
+        """Mark a post as saved by adding timestamp and optional custom name to saved_at"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute('''
-            UPDATE generated_posts 
-            SET saved_at = CURRENT_TIMESTAMP 
-            WHERE id = ? AND saved_at IS NULL
-        ''', (post_id,))
+        # If custom_name provided, update it; otherwise keep as NULL
+        if custom_name:
+            cursor.execute('''
+                UPDATE generated_posts 
+                SET saved_at = CURRENT_TIMESTAMP,
+                    custom_name = ?
+                WHERE id = ? AND saved_at IS NULL
+            ''', (custom_name, post_id))
+        else:
+            cursor.execute('''
+                UPDATE generated_posts 
+                SET saved_at = CURRENT_TIMESTAMP 
+                WHERE id = ? AND saved_at IS NULL
+            ''', (post_id,))
         
         success = cursor.rowcount > 0
         conn.commit()
@@ -461,6 +475,94 @@ class Database:
         
         conn.close()
         return post_detail
+    
+    def get_post_history(self) -> List[Dict]:
+        """Get all post generation history"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                pi.*,
+                b.brand_name,
+                COUNT(DISTINCT d.id) as debate_count,
+                COUNT(DISTINCT gp.id) as posts_generated,
+                MAX(d.vote) as final_decision
+            FROM post_inputs pi
+            INNER JOIN brands b ON pi.brand_id = b.id
+            LEFT JOIN debates d ON pi.id = d.post_input_id
+            LEFT JOIN generated_posts gp ON pi.id = gp.post_input_id
+            GROUP BY pi.id
+            ORDER BY pi.created_at DESC
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+    
+    def get_history_detail(self, post_input_id: int) -> Optional[Dict]:
+        """Get detailed history for a specific post input"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Get post input details with brand info
+        cursor.execute('''
+            SELECT 
+                pi.*,
+                b.brand_name,
+                b.brand_tone,
+                b.brand_description
+            FROM post_inputs pi
+            INNER JOIN brands b ON pi.brand_id = b.id
+            WHERE pi.id = ?
+        ''', (post_input_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+        
+        history_detail = dict(row)
+        
+        # Get all debates
+        cursor.execute('''
+            SELECT * FROM debates
+            WHERE post_input_id = ?
+            ORDER BY debate_round ASC, created_at ASC
+        ''', (post_input_id,))
+        
+        debate_rows = cursor.fetchall()
+        history_detail['debates'] = [dict(debate) for debate in debate_rows]
+        
+        # Get all generated posts
+        cursor.execute('''
+            SELECT * FROM generated_posts
+            WHERE post_input_id = ?
+            ORDER BY variation_number ASC
+        ''', (post_input_id,))
+        
+        post_rows = cursor.fetchall()
+        posts = []
+        for row in post_rows:
+            post = dict(row)
+            post['metadata'] = json.loads(post['metadata']) if post['metadata'] else {}
+            posts.append(post)
+        history_detail['generated_posts'] = posts
+        
+        conn.close()
+        return history_detail
+    
+    def clear_post_results(self, post_input_id: int) -> bool:
+        """Clear debates and generated posts for retry"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM generated_posts WHERE post_input_id = ?', (post_input_id,))
+        cursor.execute('DELETE FROM debates WHERE post_input_id = ?', (post_input_id,))
+        
+        conn.commit()
+        conn.close()
+        return True
     
     def delete_post_and_related(self, post_input_id: int) -> bool:
         """Delete a post input and all related data"""
