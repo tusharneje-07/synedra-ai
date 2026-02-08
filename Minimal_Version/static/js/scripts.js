@@ -180,8 +180,8 @@ function addDebateMessage(agentName, messageType, content, style = 'default') {
         <div class="flex items-start gap-2">
             <span class="font-semibold flex-shrink-0">${agentName}:</span>
             <div class="flex-1">
-                <div class="font-medium">${messageType}</div>
-                <div class="text-xs mt-1 text-muted-foreground">${content}</div>
+                <div class="font-medium mb-1">${messageType}</div>
+                <div class="text-xs text-muted-foreground whitespace-pre-wrap">${content}</div>
             </div>
         </div>
     `;
@@ -191,167 +191,7 @@ function addDebateMessage(agentName, messageType, content, style = 'default') {
     conversationEl.scrollTop = conversationEl.scrollHeight;
 }
 
-// Enhanced live agent debate simulation
-const agentThinkingPhrases = {
-    trend: [
-        "Analyzing current social media trends...",
-        "Checking viral content patterns...",
-        "Evaluating platform-specific trends...",
-        "Assessing hashtag relevance...",
-        "Reviewing audience engagement metrics...",
-        "Completed trend analysis!"
-    ],
-    brand: [
-        "Reviewing brand voice guidelines...",
-        "Checking tone consistency...",
-        "Validating messaging alignment...",
-        "Analyzing brand archetype match...",
-        "Verifying emotional valence...",
-        "Brand analysis complete!"
-    ],
-    compliance: [
-        "Scanning for compliance issues...",
-        "Checking regulatory requirements...",
-        "Validating ethical standards...",
-        "Reviewing legal constraints...",
-        "Assessing risk factors...",
-        "Compliance check complete!"
-    ],
-    risk: [
-        "Identifying potential risks...",
-        "Analyzing crisis scenarios...",
-        "Evaluating reputation impact...",
-        "Checking controversial elements...",
-        "Assessing backlash probability...",
-        "Risk assessment complete!"
-    ],
-    engagement: [
-        "Analyzing engagement potential...",
-        "Checking call-to-action effectiveness...",
-        "Evaluating virality factors...",
-        "Assessing community response...",
-        "Reviewing interaction triggers...",
-        "Engagement analysis complete!"
-    ],
-    cmo: [
-        "Reviewing all agent recommendations...",
-        "Weighing strategic priorities...",
-        "Analyzing consensus points...",
-        "Evaluating business impact...",
-        "Making final decision...",
-        "Decision finalized!"
-    ]
-};
-
-function simulateAgentThinking(agentKey, duration = 10000) {
-    const phrases = agentThinkingPhrases[agentKey];
-    const thinkingEl = document.getElementById(`agent-thinking-${agentKey}`);
-    const statusEl = document.getElementById(`agent-status-${agentKey}`);
-    const cardEl = document.getElementById(`agent-card-${agentKey}`);
-    
-    if (!thinkingEl || !phrases) return;
-    
-    // Activate card
-    cardEl?.classList.remove('opacity-50');
-    cardEl?.classList.add('ring-2', 'ring-primary');
-    statusEl.textContent = '🔄';
-    
-    let currentPhrase = 0;
-    const interval = duration / phrases.length;
-    
-    const updatePhrase = () => {
-        if (currentPhrase < phrases.length) {
-            thinkingEl.textContent = phrases[currentPhrase];
-            
-            // Mark as complete on last phrase
-            if (currentPhrase === phrases.length - 1) {
-                statusEl.innerHTML = '<svg class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"></path></svg>';
-                cardEl?.classList.remove('ring-primary');
-                cardEl?.classList.add('border-green-500/50');
-                thinkingEl.classList.remove('italic');
-                thinkingEl.classList.add('text-green-500', 'font-medium');
-            }
-            
-            currentPhrase++;
-            if (currentPhrase < phrases.length) {
-                const timeout = setTimeout(updatePhrase, interval);
-                debateSimulationTimeouts.push(timeout);
-            }
-        }
-    };
-    
-    updatePhrase();
-}
-
-// Store intervals so we can clear them
-let debateSimulationIntervals = [];
-let debateSimulationTimeouts = [];
-
-function stopDebateSimulation() {
-    // Clear all intervals and timeouts
-    debateSimulationIntervals.forEach(interval => clearInterval(interval));
-    debateSimulationTimeouts.forEach(timeout => clearTimeout(timeout));
-    debateSimulationIntervals = [];
-    debateSimulationTimeouts = [];
-    console.log('✋ Stopped debate simulation - using real data');
-}
-
-function simulateDebateProgress(totalDuration = 50000) {
-    const progressBar = document.getElementById('progress-bar');
-    const currentActivity = document.getElementById('current-activity');
-    
-    const agents = [
-        { key: 'trend', name: 'TrendAgent', delay: 2000, duration: 8000 },
-        { key: 'brand', name: 'BrandAgent', delay: 10000, duration: 8000 },
-        { key: 'compliance', name: 'ComplianceAgent', delay: 18000, duration: 7000 },
-        { key: 'risk', name: 'RiskAgent', delay: 25000, duration: 7000 },
-        { key: 'engagement', name: 'EngagementAgent', delay: 32000, duration: 8000 },
-        { key: 'cmo', name: 'CMO', delay: 40000, duration: 9000 }
-    ];
-    
-    // Update current activity
-    const activities = [
-        { time: 0, text: 'Initializing debate orchestrator...' },
-        { time: 2000, text: 'TrendAgent is analyzing market trends...' },
-        { time: 10000, text: 'BrandAgent is reviewing brand alignment...' },
-        { time: 18000, text: 'ComplianceAgent is checking regulations...' },
-        { time: 25000, text: 'RiskAgent is assessing potential risks...' },
-        { time: 32000, text: 'EngagementAgent is evaluating viral potential...' },
-        { time: 40000, text: 'CMO is making final arbitration...' },
-        { time: 49000, text: 'Finalizing results...' }
-    ];
-    
-    activities.forEach(activity => {
-        const timeout = setTimeout(() => {
-            if (currentActivity) {
-                currentActivity.textContent = activity.text;
-            }
-        }, activity.delay);
-        debateSimulationTimeouts.push(timeout);
-    });
-    
-    // Start each agent's thinking simulation
-    agents.forEach(agent => {
-        const timeout = setTimeout(() => {
-            simulateAgentThinking(agent.key, agent.duration);
-        }, agent.delay);
-        debateSimulationTimeouts.push(timeout);
-    });
-    
-    // Animate progress bar
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += 100 / (totalDuration / 200);
-        if (progress >= 100) {
-            progress = 100;
-            clearInterval(progressInterval);
-        }
-        if (progressBar) {
-            progressBar.style.width = `${progress}%`;
-        }
-    }, 200);
-    debateSimulationIntervals.push(progressInterval);
-}
+// All fake simulation code removed - using real backend data only
 
 // ========================================
 // Brand Management Functions
@@ -557,8 +397,143 @@ function setupPostForm() {
             
             showLoadingModal(true);
             
-            // Start the visual debate simulation
-            simulateDebateProgress(50000);
+            // DO NOT start fake debate simulation - we'll use real updates
+            // simulateDebateProgress(50000); // REMOVED
+            
+            // Start polling for live debate updates
+            let debatePollingInterval = null;
+            let lastMessageIndex = 0;
+            
+            function pollDebateUpdates(postId) {
+                debatePollingInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch(`${API_BASE}/debates/${postId}/live-progress`);
+                        const data = await response.json();
+                        
+                        console.log('Polling response:', data); // DEBUG
+                        
+                        if (data.success && data.messages) {
+                            console.log(`Total messages: ${data.messages.length}, Last index: ${lastMessageIndex}`); // DEBUG
+                            // Display new messages
+                            const newMessages = data.messages.slice(lastMessageIndex);
+                            console.log('New messages:', newMessages); // DEBUG
+                            newMessages.forEach(msg => {
+                                displayLiveMessage(msg);
+                            });
+                            lastMessageIndex = data.messages.length;
+                            
+                            // Update progress based on message count (approximate)
+                            const progress = Math.min((lastMessageIndex / 20) * 100, 95);
+                            const progressBar = document.getElementById('progress-bar');
+                            if (progressBar) {
+                                progressBar.style.width = `${progress}%`;
+                            }
+                            
+                            // Stop polling if complete
+                            if (data.status === 'complete') {
+                                clearInterval(debatePollingInterval);
+                                if (progressBar) {
+                                    progressBar.style.width = '100%';
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error polling debate updates:', error);
+                    }
+                }, 1000); // Poll every 1 second for real-time feel
+            }
+            
+            function displayLiveMessage(msg) {
+                const agent = msg.agent;
+                const type = msg.type;
+                const content = msg.content;
+                
+                // Map agent names to card keys
+                const agentKeyMap = {
+                    'TrendAgent': 'trend',
+                    'BrandAgent': 'brand',
+                    'ComplianceAgent': 'compliance',
+                    'RiskAgent': 'risk',
+                    'EngagementAgent': 'engagement',
+                    'CMOAgent': 'cmo',
+                    'CMO': 'cmo'
+                };
+                
+                const agentKey = agentKeyMap[agent];
+                
+                // Update agent card status in real-time
+                if (agentKey) {
+                    const cardEl = document.getElementById(`agent-card-${agentKey}`);
+                    const thinkingEl = document.getElementById(`agent-thinking-${agentKey}`);
+                    const statusEl = document.getElementById(`agent-status-${agentKey}`);
+                    
+                    // Activate card (remove waiting state)
+                    if (cardEl) {
+                        cardEl.classList.remove('opacity-50');
+                        cardEl.classList.add('ring-2', 'ring-primary');
+                    }
+                    
+                    // Update status icon to show activity
+                    if (statusEl) {
+                        statusEl.innerHTML = '<svg class="w-4 h-4 text-blue-400 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path></svg>';
+                    }
+                    
+                    // Update thinking text with actual content
+                    if (thinkingEl) {
+                        thinkingEl.textContent = content.substring(0, 100) + (content.length > 100 ? '...' : '');
+                        thinkingEl.classList.remove('italic');
+                        thinkingEl.classList.add('text-foreground');
+                    }
+                }
+                
+                // Update current activity
+                updateLoadingStatus(`${agent}: ${content.substring(0, 50)}...`);
+                
+                // Add to conversation log
+                if (type === 'thinking') {
+                    addDebateMessage(agent, 'Thinking', content);
+                } else if (type === 'reaction') {
+                    addDebateMessage(agent, 'Initial Reaction', content);
+                    if (msg.reasoning) {
+                        addDebateMessage(agent, 'Reasoning', msg.reasoning);
+                    }
+                } else if (type === 'message') {
+                    // Show vote with full explanation
+                    const voteLabel = msg.vote ? msg.vote.toUpperCase() : 'UNKNOWN';
+                    const argument = msg.argument || content || 'No argument provided';
+                    const reasoning = msg.reasoning || '';
+                    
+                    // Combine vote, argument and reasoning into one clear message
+                    let fullMessage = `📋 VOTE: ${voteLabel}\n\n`;
+                    fullMessage += `💭 ${argument}`;
+                    if (reasoning) {
+                        fullMessage += `\n\n🔍 WHY: ${reasoning}`;
+                    }
+                    
+                    addDebateMessage(agent, 'Decision', fullMessage);
+                    
+                    // Mark agent as complete when they finish speaking
+                    if (agentKey && msg.vote) {
+                        const cardEl = document.getElementById(`agent-card-${agentKey}`);
+                        const statusEl = document.getElementById(`agent-status-${agentKey}`);
+                        const thinkingEl = document.getElementById(`agent-thinking-${agentKey}`);
+                        
+                        if (statusEl) {
+                            statusEl.innerHTML = '<svg class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>';
+                        }
+                        
+                        if (cardEl) {
+                            cardEl.classList.remove('ring-primary');
+                            cardEl.classList.add('border-green-500/50');
+                        }
+                        
+                        if (thinkingEl) {
+                            thinkingEl.textContent = `Vote: ${msg.vote} - Analysis complete!`;
+                            thinkingEl.classList.add('text-green-500', 'font-medium');
+                        }
+                    }
+                }
+            }
             
             // Create post input
             const createResponse = await fetch(`${API_BASE}/post-inputs`, {
@@ -576,6 +551,9 @@ function setupPostForm() {
             }
             
             const postInputId = createData.post_input_id;
+            
+            // Start polling for LIVE debate updates immediately
+            pollDebateUpdates(postInputId);
             
             // Update modal to show API key check
             updateLoadingStatus('Checking API keys...');
@@ -613,16 +591,18 @@ function setupPostForm() {
             
             const debateData = await debateResponse.json();
             
+            // Stop polling - debate is complete
+            if (debatePollingInterval) {
+                clearInterval(debatePollingInterval);
+            }
+            
             // Debug logging
             console.log('📥 Received debate response:', debateData);
             console.log('API Key Name:', debateData.api_key_name);
             console.log('Conversation Log Length:', debateData.conversation_log ? debateData.conversation_log.length : 0);
             
             if (debateData.success) {
-                // STOP the fake simulation immediately
-                stopDebateSimulation();
-                
-                // Keep modal open to display real results
+                // Keep modal open to display final results
                 updateLoadingStatus('Debate Complete! ✅');
                 
                 // Update progress bar to 100%
@@ -1004,13 +984,53 @@ function viewPostDetail(index) {
                 <div class="rounded-lg border border-border bg-muted/50 p-4 text-sm">${post.image_prompt}</div>
             </div>
             
+            ${post.story_image_prompt ? `
+            <div>
+                <h4 class="text-lg font-semibold text-primary mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                    <span>Story-Based Image Prompt</span>
+                </h4>
+                <div class="rounded-lg border border-border bg-muted/50 p-4 text-sm">${post.story_image_prompt}</div>
+            </div>
+            ` : ''}
+            
+            ${post.reel_script ? `
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-lg font-semibold text-primary flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                        <span>Reel/Video Script</span>
+                    </h4>
+                    <button onclick="readScript(${index})" id="read-script-btn-${index}"
+                        class="btn btn-secondary h-9 px-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                        <span id="read-script-text-${index}">Read Script</span>
+                    </button>
+                </div>
+                <div class="rounded-lg border border-border bg-muted/50 p-6 text-sm">
+                    ${formatReelScript(post.reel_script)}
+                </div>
+            </div>
+            ` : ''}
+            
             <div class="flex items-center justify-between pt-4 border-t border-border">
                 <span class="text-sm text-muted-foreground">Variation ${post.variation_number} | Score: ${post.final_score?.toFixed(0) || 'N/A'}%</span>
-                <button onclick="copyToClipboard(${index})" 
-                    class="btn btn-secondary h-9 px-4 flex items-center gap-2">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span>Copy Content</span>
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="savePost(${post.id})" 
+                        class="btn btn-primary h-9 px-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        <span>Save Post</span>
+                    </button>
+                    <button onclick="copyToClipboard(${index})" 
+                        class="btn btn-secondary h-9 px-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy Content</span>
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -1032,6 +1052,450 @@ function copyToClipboard(index) {
     });
 }
 
+// Format reel script for better readability
+function formatReelScript(script) {
+    if (!script) return '';
+    
+    // Split by lines and format each section
+    const lines = script.split('\n');
+    let formatted = '<div class="space-y-4">';
+    
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) return;
+        
+        // Check if line has timestamp [0:00-0:05]
+        const timestampMatch = line.match(/^\[([^\]]+)\]/);
+        
+        if (timestampMatch) {
+            const timestamp = timestampMatch[1];
+            const content = line.replace(/^\[([^\]]+)\]\s*/, '');
+            
+            // Extract label (HOOK, PROBLEM, etc.) if present
+            const labelMatch = content.match(/^([A-Z\s]+):\s*/);
+            if (labelMatch) {
+                const label = labelMatch[1];
+                const text = content.replace(/^([A-Z\s]+):\s*/, '');
+                
+                formatted += `
+                    <div class="flex gap-3 items-start">
+                        <div class="flex-shrink-0 w-24 text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-1 rounded">${timestamp}</div>
+                        <div class="flex-1">
+                            <div class="font-semibold text-primary mb-1">${label}</div>
+                            <div class="text-muted-foreground">${text}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                formatted += `
+                    <div class="flex gap-3 items-start">
+                        <div class="flex-shrink-0 w-24 text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-1 rounded">${timestamp}</div>
+                        <div class="flex-1 text-muted-foreground">${content}</div>
+                    </div>
+                `;
+            }
+        } else {
+            // Line without timestamp
+            formatted += `<div class="text-muted-foreground pl-28">${line}</div>`;
+        }
+    });
+    
+    formatted += '</div>';
+    return formatted;
+}
+
+// Text-to-Speech for script reading
+let currentSpeech = null;
+let isReading = false;
+
+function readScript(index) {
+    const post = window.generatedPosts[index];
+    if (!post || !post.reel_script) {
+        showMessage('No script available to read', 'warning');
+        return;
+    }
+    
+    const button = document.getElementById(`read-script-btn-${index}`);
+    const buttonText = document.getElementById(`read-script-text-${index}`);
+    
+    // Check if browser supports Speech Synthesis
+    if (!('speechSynthesis' in window)) {
+        showMessage('Text-to-speech not supported in this browser', 'error');
+        return;
+    }
+    
+    // If already reading, stop
+    if (isReading) {
+        window.speechSynthesis.cancel();
+        isReading = false;
+        buttonText.textContent = 'Read Script';
+        button.classList.remove('bg-red-500/20', 'border-red-500');
+        return;
+    }
+    
+    // Clean script - remove timestamps and brackets
+    let cleanScript = post.reel_script
+        .replace(/\[[\d:]+\-[\d:]+\]/g, '') // Remove timestamps [0:00-0:05]
+        .replace(/\[|\]/g, '') // Remove any remaining brackets
+        .replace(/HOOK:|PROBLEM:|SOLUTION:|CTA:|CLOSING:/gi, '') // Remove section labels
+        .trim();
+    
+    // Validate cleaned script
+    if (!cleanScript || cleanScript.length < 10) {
+        showMessage('Script is too short or empty to read', 'warning');
+        return;
+    }
+    
+    // Limit length to avoid errors (max 4096 characters)
+    if (cleanScript.length > 4096) {
+        cleanScript = cleanScript.substring(0, 4096) + '...';
+    }
+    
+    try {
+        // Create speech synthesis utterance
+        const utterance = new SpeechSynthesisUtterance(cleanScript);
+        
+        // Configure voice settings
+        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        utterance.lang = 'en-US';
+        
+        // Try to find a good English voice
+        const voices = window.speechSynthesis.getVoices();
+        const englishVoice = voices.find(voice => 
+            voice.lang.startsWith('en') && !voice.localService
+        ) || voices.find(voice => voice.lang.startsWith('en'));
+        
+        if (englishVoice) {
+            utterance.voice = englishVoice;
+        }
+        
+        // Event handlers
+        utterance.onstart = () => {
+            isReading = true;
+            buttonText.textContent = 'Stop Reading';
+            button.classList.add('bg-red-500/20', 'border-red-500');
+        };
+        
+        utterance.onend = () => {
+            isReading = false;
+            buttonText.textContent = 'Read Script';
+            button.classList.remove('bg-red-500/20', 'border-red-500');
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('Speech synthesis error:', event);
+            isReading = false;
+            buttonText.textContent = 'Read Script';
+            button.classList.remove('bg-red-500/20', 'border-red-500');
+            
+            // Don't show error for 'interrupted' or 'canceled' errors
+            if (event.error !== 'interrupted' && event.error !== 'canceled') {
+                showMessage('Could not read script. Please try again.', 'warning');
+            }
+        };
+        
+        // Start speaking
+        currentSpeech = utterance;
+        window.speechSynthesis.speak(utterance);
+        
+    } catch (error) {
+        console.error('Error creating speech:', error);
+        showMessage('Error initializing text-to-speech', 'error');
+    }
+}
+
+// Load voices (needed for some browsers)
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+    };
+}
+
+// Close modal and stop any speech
+function closePostModal() {
+    // Stop any ongoing speech
+    if (isReading && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        isReading = false;
+    }
+    
+    // Close modal
+    const modal = document.getElementById('post-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Save post to database
+async function savePost(postId) {
+    if (!postId) {
+        showMessage('Invalid post ID', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/save-post/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage('Post saved successfully! View it in Saved Posts.', 'success');
+        } else {
+            showMessage(data.message || 'Failed to save post', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving post:', error);
+        showMessage('Error saving post', 'error');
+    }
+}
+
+// Load all saved posts
+async function loadSavedPosts() {
+    try {
+        const response = await fetch(`${API_BASE}/saved-posts`);
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.posts.length > 0) {
+                displaySavedPosts(data.posts);
+            } else {
+                document.getElementById('saved-posts-container').classList.add('hidden');
+                document.getElementById('no-saved-posts').classList.remove('hidden');
+            }
+        } else {
+            showMessage('Error loading saved posts', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading saved posts:', error);
+        showMessage('Error loading saved posts', 'error');
+    }
+}
+
+// Display saved posts in grid
+function displaySavedPosts(posts) {
+    const container = document.getElementById('saved-posts-container');
+    if (!container) return;
+    
+    container.innerHTML = posts.map(post => {
+        const savedDate = new Date(post.saved_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        return `
+            <div class="card overflow-hidden hover:border-primary transition-colors">
+                <div class="bg-gradient-to-r from-primary/10 to-accent/10 border-b border-border p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xl font-bold">${post.brand_name}</h3>
+                        <div class="rounded-full bg-primary/20 px-3 py-1">
+                            <span class="text-sm font-semibold">${post.final_score?.toFixed(0) || 'N/A'}%</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Saved ${savedDate}</span>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Topic</h4>
+                        <p class="text-sm">${post.post_topic}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Title</h4>
+                        <p class="font-semibold">${post.post_title}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-sm font-medium text-muted-foreground mb-1">Platform</h4>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-primary">${post.target_platform}</span>
+                            <span class="text-muted-foreground">•</span>
+                            <span class="text-sm text-muted-foreground">${post.content_type}</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="viewSavedPostDetail(${post.id})" 
+                        class="btn btn-primary w-full h-10">
+                        View Full Details & Debate History
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// View detailed saved post with debate history
+async function viewSavedPostDetail(postId) {
+    try {
+        const response = await fetch(`${API_BASE}/saved-post/${postId}`);
+        const data = await response.json();
+        
+        if (!data.success || !data.post) {
+            showMessage('Could not load post details', 'error');
+            return;
+        }
+        
+        const post = data.post;
+        const modal = document.getElementById('saved-post-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('saved-modal-content');
+        
+        modalTitle.textContent = `${post.brand_name} - ${post.post_title}`;
+        
+        // Build debate history HTML
+        let debateHtml = '';
+        if (post.debates && post.debates.length > 0) {
+            debateHtml = `
+                <div class="mb-8">
+                    <h4 class="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>Agent Debate History</span>
+                    </h4>
+                    <div class="space-y-3">
+                        ${post.debates.map(debate => `
+                            <div class="rounded-lg border border-border bg-muted/30 p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-primary">${debate.agent_name}</span>
+                                        <span class="text-xs text-muted-foreground">(${debate.agent_role})</span>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded ${
+                                        debate.vote === 'APPROVE' ? 'bg-green-500/20 text-green-400' :
+                                        debate.vote === 'REJECT' ? 'bg-red-500/20 text-red-400' :
+                                        'bg-yellow-500/20 text-yellow-400'
+                                    }">${debate.vote}</span>
+                                </div>
+                                ${debate.analysis ? `<p class="text-sm text-muted-foreground mb-2">${debate.analysis}</p>` : ''}
+                                ${debate.reasoning ? `
+                                    <div class="text-sm">
+                                        <span class="font-medium text-primary">Reasoning:</span>
+                                        <span class="text-muted-foreground">${debate.reasoning}</span>
+                                    </div>
+                                ` : ''}
+                                ${debate.concerns ? `
+                                    <div class="text-sm mt-2">
+                                        <span class="font-medium text-yellow-400">Concerns:</span>
+                                        <span class="text-muted-foreground">${debate.concerns}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        modalContent.innerHTML = `
+            <div class="space-y-6">
+                <!-- Original Requirements -->
+                <div class="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                    <h4 class="text-lg font-semibold text-primary mb-3">Original Requirements</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium">Topic:</span>
+                            <p class="text-muted-foreground">${post.post_topic}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Objective:</span>
+                            <p class="text-muted-foreground">${post.post_objective}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Platform:</span>
+                            <p class="text-muted-foreground">${post.target_platform}</p>
+                        </div>
+                        <div>
+                            <span class="font-medium">Content Type:</span>
+                            <p class="text-muted-foreground">${post.content_type}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-medium">Key Message:</span>
+                            <p class="text-muted-foreground">${post.key_message}</p>
+                        </div>
+                        ${post.call_to_action ? `
+                            <div class="col-span-2">
+                                <span class="font-medium">Call to Action:</span>
+                                <p class="text-muted-foreground">${post.call_to_action}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${debateHtml}
+                
+                <!-- Generated Post Content -->
+                <div>
+                    <h4 class="text-lg font-semibold text-primary mb-2">Final Generated Post</h4>
+                    <div class="rounded-lg border border-border bg-muted/50 p-4 whitespace-pre-wrap text-sm">${post.post_content}</div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-primary mb-2">Hashtags</h4>
+                    <p class="text-primary">${post.hashtags}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-primary mb-2">Image Generation Prompt</h4>
+                    <div class="rounded-lg border border-border bg-muted/50 p-4 text-sm">${post.image_prompt}</div>
+                </div>
+                
+                ${post.story_image_prompt ? `
+                    <div>
+                        <h4 class="text-lg font-semibold text-primary mb-2">Story-Based Image Prompt</h4>
+                        <div class="rounded-lg border border-border bg-muted/50 p-4 text-sm">${post.story_image_prompt}</div>
+                    </div>
+                ` : ''}
+                
+                ${post.reel_script ? `
+                    <div>
+                        <h4 class="text-lg font-semibold text-primary mb-2">Reel/Video Script</h4>
+                        <div class="rounded-lg border border-border bg-muted/50 p-6 text-sm">
+                            ${formatReelScript(post.reel_script)}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div class="flex items-center justify-between pt-4 border-t border-border">
+                    <span class="text-sm text-muted-foreground">Score: ${post.final_score?.toFixed(0) || 'N/A'}%</span>
+                    <button onclick="copyToClipboard(null, ${JSON.stringify(post).replace(/"/g, '&quot;')})" 
+                        class="btn btn-secondary h-9 px-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy Content</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modal.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading saved post detail:', error);
+        showMessage('Error loading post details', 'error');
+    }
+}
+
+// Close saved post modal
+function closeSavedPostModal() {
+    const modal = document.getElementById('saved-post-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 // ========================================
 // Global Functions
 // ========================================
@@ -1045,3 +1509,10 @@ window.loadGeneratedPosts = loadGeneratedPosts;
 window.viewPostDetail = viewPostDetail;
 window.copyToClipboard = copyToClipboard;
 window.selectBrandForPosting = selectBrandForPosting;
+window.formatReelScript = formatReelScript;
+window.readScript = readScript;
+window.closePostModal = closePostModal;
+window.savePost = savePost;
+window.loadSavedPosts = loadSavedPosts;
+window.viewSavedPostDetail = viewSavedPostDetail;
+window.closeSavedPostModal = closeSavedPostModal;

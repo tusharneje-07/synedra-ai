@@ -30,6 +30,9 @@
                 <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground">
                     Create Post
                 </a>
+                <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Saved Posts
+                </a>
                 <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
                     Settings
                 </a>
@@ -121,9 +124,35 @@
                         <label for="post_topic" class="label">
                             What do you want to post about? <span class="text-destructive">*</span>
                         </label>
-                        <textarea id="post_topic" name="post_topic" required rows="4"
-                            class="textarea" placeholder="e.g., Launching our new AI-powered analytics dashboard, Sharing insights about remote work productivity, Announcing our Q4 results"></textarea>
-                        <p class="text-xs text-muted-foreground">Describe your topic in a few sentences. Our agents will craft the perfect message.</p>
+                        <div class="relative">
+                            <textarea id="post_topic" name="post_topic" required rows="4"
+                                class="textarea pr-12" placeholder="e.g., Launching our new AI-powered analytics dashboard, Sharing insights about remote work productivity, Announcing our Q4 results"></textarea>
+                            <!-- Voice Input Button -->
+                            <button type="button" id="voice-input-btn" 
+                                class="absolute right-2 top-2 p-2 rounded-md hover:bg-muted transition-colors"
+                                title="Click to speak">
+                                <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                                </svg>
+                                <!-- Listening indicator -->
+                                <span id="listening-indicator" class="hidden absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                </span>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs text-muted-foreground">Describe your topic in a few sentences. Our agents will craft the perfect message.</p>
+                            <p id="voice-status" class="text-xs text-muted-foreground hidden">
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                    <span id="voice-status-text">Listening...</span>
+                                </span>
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Call to Action / Important Keywords -->
@@ -361,7 +390,224 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadBrandsForPostCreation();
             setupPostForm();
+            initVoiceInput();
         });
+
+        // Voice Input Functionality
+        function initVoiceInput() {
+            const voiceBtn = document.getElementById('voice-input-btn');
+            const postTopicTextarea = document.getElementById('post_topic');
+            const listeningIndicator = document.getElementById('listening-indicator');
+            const voiceStatus = document.getElementById('voice-status');
+            const voiceStatusText = document.getElementById('voice-status-text');
+            const micIcon = document.getElementById('mic-icon');
+
+            // Check if browser supports Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech Recognition API not supported in this browser');
+                voiceBtn.disabled = true;
+                voiceBtn.title = 'Voice input not supported in this browser';
+                micIcon.classList.add('opacity-30');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false; // Don't keep listening continuously to avoid network errors
+            recognition.interimResults = true; // Show real-time results
+            recognition.lang = 'en-US'; // Set language
+            recognition.maxAlternatives = 1;
+
+            let isListening = false;
+            let finalTranscript = '';
+            let interimTranscript = '';
+            let restartAttempts = 0;
+            let maxRestartAttempts = 3;
+
+            // Handle voice button click
+            voiceBtn.addEventListener('click', function() {
+                if (!isListening) {
+                    startListening();
+                } else {
+                    stopListening();
+                }
+            });
+
+            function startListening() {
+                try {
+                    recognition.start();
+                    isListening = true;
+                    restartAttempts = 0; // Reset restart attempts
+                    
+                    // Update UI
+                    listeningIndicator.classList.remove('hidden');
+                    voiceStatus.classList.remove('hidden');
+                    voiceStatusText.textContent = 'Listening...';
+                    micIcon.classList.add('text-red-500');
+                    voiceBtn.classList.add('bg-red-500/10');
+                    
+                    // Store current text
+                    finalTranscript = postTopicTextarea.value;
+                } catch (error) {
+                    console.error('Error starting speech recognition:', error);
+                    showMessage('Error starting voice input. Please try again.', 'error');
+                    isListening = false;
+                }
+            }
+
+            function stopListening() {
+                recognition.stop();
+                isListening = false;
+                
+                // Update UI
+                listeningIndicator.classList.add('hidden');
+                voiceStatus.classList.add('hidden');
+                micIcon.classList.remove('text-red-500');
+                voiceBtn.classList.remove('bg-red-500/10');
+            }
+
+            // Handle recognition results
+            recognition.onresult = function(event) {
+                interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += (finalTranscript ? ' ' : '') + transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Update textarea in real-time with both final and interim results
+                const currentText = finalTranscript + (interimTranscript ? ' ' + interimTranscript : '');
+                postTopicTextarea.value = currentText;
+                
+                // Auto-resize textarea if needed
+                postTopicTextarea.style.height = 'auto';
+                postTopicTextarea.style.height = postTopicTextarea.scrollHeight + 'px';
+            };
+
+            // Handle recognition end
+            recognition.onend = function() {
+                if (isListening) {
+                    // Auto-restart for continuous listening
+                    try {
+                        setTimeout(() => {
+                            if (isListening) {
+                                recognition.start();
+                                restartAttempts = 0; // Reset on successful restart
+                            }
+                        }, 100); // Small delay before restart
+                    } catch (error) {
+                        console.log('Could not restart recognition:', error);
+                        if (restartAttempts < maxRestartAttempts) {
+                            restartAttempts++;
+                            setTimeout(() => {
+                                if (isListening) {
+                                    try {
+                                        recognition.start();
+                                    } catch (e) {
+                                        console.error('Restart failed:', e);
+                                        stopListening();
+                                    }
+                                }
+                            }, 500 * restartAttempts); // Exponential backoff
+                        } else {
+                            console.log('Max restart attempts reached');
+                            stopListening();
+                        }
+                    }
+                }
+            };
+
+            // Handle errors
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                
+                // Don't show error for aborted/no-speech as these are normal
+                if (event.error === 'aborted' || event.error === 'no-speech') {
+                    if (isListening && event.error === 'no-speech') {
+                        voiceStatusText.textContent = 'No speech detected - still listening...';
+                        // Auto-restart on no-speech
+                        setTimeout(() => {
+                            if (isListening) {
+                                try {
+                                    recognition.start();
+                                } catch (e) {
+                                    console.log('Could not restart after no-speech');
+                                }
+                            }
+                        }, 500);
+                    }
+                    return;
+                }
+                
+                let errorMessage = 'Voice input error: ';
+                let shouldStop = true;
+                
+                switch(event.error) {
+                    case 'audio-capture':
+                        errorMessage += 'Microphone not found or not accessible.';
+                        showMessage('Please check your microphone permissions', 'error');
+                        break;
+                    case 'not-allowed':
+                        errorMessage += 'Microphone permission denied.';
+                        showMessage('Please allow microphone access to use voice input', 'error');
+                        break;
+                    case 'network':
+                        errorMessage += 'Network error - Speech recognition requires internet connection.';
+                        showMessage('Voice recognition needs internet. Please check your connection.', 'warning');
+                        shouldStop = true;
+                        break;
+                    case 'service-not-allowed':
+                        errorMessage += 'Speech recognition service not available.';
+                        showMessage('Voice recognition service unavailable. Please try again later.', 'error');
+                        break;
+                    default:
+                        errorMessage += event.error;
+                        voiceStatusText.textContent = 'Error: ' + event.error;
+                }
+                
+                console.warn(errorMessage);
+                
+                // Stop listening on critical errors
+                if (shouldStop) {
+                    setTimeout(() => {
+                        stopListening();
+                    }, 1500);
+                }
+            };
+
+            // Handle when speech starts
+            recognition.onspeechstart = function() {
+                voiceStatusText.textContent = 'Listening...';
+            };
+
+            // Handle when speech ends
+            recognition.onspeechend = function() {
+                voiceStatusText.textContent = 'Processing...';
+            };
+
+            // Handle when audio starts
+            recognition.onaudiostart = function() {
+                console.log('Audio capturing started');
+            };
+
+            // Handle when audio ends
+            recognition.onaudioend = function() {
+                console.log('Audio capturing ended');
+            };
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', function() {
+                if (isListening) {
+                    recognition.stop();
+                }
+            });
+        }
     </script>
 </body>
 </html>

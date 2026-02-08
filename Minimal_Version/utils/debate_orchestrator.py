@@ -5,6 +5,7 @@ Runs agents sequentially and collects their outputs
 
 import logging
 from typing import Dict, List, Any
+from datetime import datetime
 from database import get_db
 from agents import (
     TrendAgent,
@@ -31,8 +32,26 @@ class DebateOrchestrator:
         self.risk_agent = RiskAgent()
         self.engagement_agent = EngagementAgent()
         self.cmo_agent = CMOAgent()
+        self.live_updates_callback = None  # Will be set by caller
         
         logger.info("DebateOrchestrator initialized with 6 agents")
+    
+    def set_live_updates_callback(self, callback):
+        """Set callback function to push live updates"""
+        self.live_updates_callback = callback
+    
+    def _push_update(self, message_type, agent, content, metadata=None):
+        """Push live update to frontend"""
+        if self.live_updates_callback:
+            update = {
+                'type': message_type,
+                'agent': agent,
+                'content': content,
+                'timestamp': datetime.now().isoformat()
+            }
+            if metadata:
+                update.update(metadata)
+            self.live_updates_callback(update)
     
     def run_debate(
         self,
@@ -139,6 +158,22 @@ class DebateOrchestrator:
             )
             self._save_agent_debate(post_input_id, cmo_decision)
             
+            # Push CMO decision to frontend with full details
+            cmo_statement = cmo_decision.get('moderator_statement', '') or cmo_decision.get('final_decision', '')
+            cmo_reasoning = cmo_decision.get('reasoning', '')
+            cmo_vote = cmo_decision.get('final_vote', 'unknown')
+            
+            cmo_full_message = f"📋 FINAL DECISION: {cmo_vote.upper()}\n\n"
+            cmo_full_message += f"💭 {cmo_statement}\n\n"
+            if cmo_reasoning:
+                cmo_full_message += f"🔍 REASONING: {cmo_reasoning}"
+            
+            self._push_update('message', 'CMOAgent', cmo_full_message, {
+                'vote': cmo_vote,
+                'reasoning': cmo_reasoning,
+                'argument': cmo_statement
+            })
+            
             logger.info(f"=== DEBATE CONCLUDED after {conversation_log['turn_count']} exchanges - Decision: {cmo_decision.get('final_vote')} ===")
             
             conversation_messages.append({
@@ -173,40 +208,64 @@ class DebateOrchestrator:
         reactions = {}
         
         logger.info("  📊 TrendAgent: Quick reaction...")
+        self._push_update('thinking', 'TrendAgent', 'Analyzing current trends and market data...')
         conversation_messages.append({'type': 'thinking', 'agent': 'TrendAgent', 'message': 'Analyzing trends...'})
         trend_reaction = self.trend_agent.quick_reaction(context)
         reactions['TrendAgent'] = trend_reaction
         self._save_agent_debate(post_input_id, trend_reaction)
-        conversation_messages.append({'type': 'reaction', 'agent': 'TrendAgent', 'message': f"Score: {trend_reaction.get('score', 'N/A')}/100"})
+        score = trend_reaction.get('score', 'N/A')
+        vote = trend_reaction.get('vote', 'unknown')
+        reasoning = trend_reaction.get('reasoning', '')
+        self._push_update('reaction', 'TrendAgent', f"Score: {score}/100 - Vote: {vote}", {'reasoning': reasoning, 'score': score, 'vote': vote})
+        conversation_messages.append({'type': 'reaction', 'agent': 'TrendAgent', 'message': f"Score: {score}/100"})
         
         logger.info("  🎨 BrandAgent: Quick reaction...")
+        self._push_update('thinking', 'BrandAgent', 'Checking brand alignment and voice consistency...')
         conversation_messages.append({'type': 'thinking', 'agent': 'BrandAgent', 'message': 'Checking brand alignment...'})
         brand_reaction = self.brand_agent.quick_reaction(context)
         reactions['BrandAgent'] = brand_reaction
         self._save_agent_debate(post_input_id, brand_reaction)
-        conversation_messages.append({'type': 'reaction', 'agent': 'BrandAgent', 'message': f"Score: {brand_reaction.get('score', 'N/A')}/100"})
+        score = brand_reaction.get('score', 'N/A')
+        vote = brand_reaction.get('vote', 'unknown')
+        reasoning = brand_reaction.get('reasoning', '')
+        self._push_update('reaction', 'BrandAgent', f"Score: {score}/100 - Vote: {vote}", {'reasoning': reasoning, 'score': score, 'vote': vote})
+        conversation_messages.append({'type': 'reaction', 'agent': 'BrandAgent', 'message': f"Score: {score}/100"})
         
         logger.info("  ⚖️ ComplianceAgent: Quick reaction...")
+        self._push_update('thinking', 'ComplianceAgent', 'Verifying compliance and regulatory requirements...')
         conversation_messages.append({'type': 'thinking', 'agent': 'ComplianceAgent', 'message': 'Verifying compliance...'})
         compliance_reaction = self.compliance_agent.quick_reaction(context)
         reactions['ComplianceAgent'] = compliance_reaction
         self._save_agent_debate(post_input_id, compliance_reaction)
-        
-        conversation_messages.append({'type': 'reaction', 'agent': 'ComplianceAgent', 'message': f"Score: {compliance_reaction.get('score', 'N/A')}/100"})
+        score = compliance_reaction.get('score', 'N/A')
+        vote = compliance_reaction.get('vote', 'unknown')
+        reasoning = compliance_reaction.get('reasoning', '')
+        self._push_update('reaction', 'ComplianceAgent', f"Score: {score}/100 - Vote: {vote}", {'reasoning': reasoning, 'score': score, 'vote': vote})
+        conversation_messages.append({'type': 'reaction', 'agent': 'ComplianceAgent', 'message': f"Score: {score}/100"})
         
         logger.info("  🛡️ RiskAgent: Quick reaction...")
+        self._push_update('thinking', 'RiskAgent', 'Assessing potential risks and vulnerabilities...')
         conversation_messages.append({'type': 'thinking', 'agent': 'RiskAgent', 'message': 'Assessing risks...'})
         risk_reaction = self.risk_agent.quick_reaction(context)
         reactions['RiskAgent'] = risk_reaction
         self._save_agent_debate(post_input_id, risk_reaction)
-        conversation_messages.append({'type': 'reaction', 'agent': 'RiskAgent', 'message': f"Score: {risk_reaction.get('score', 'N/A')}/100"})
+        score = risk_reaction.get('score', 'N/A')
+        vote = risk_reaction.get('vote', 'unknown')
+        reasoning = risk_reaction.get('reasoning', '')
+        self._push_update('reaction', 'RiskAgent', f"Score: {score}/100 - Vote: {vote}", {'reasoning': reasoning, 'score': score, 'vote': vote})
+        conversation_messages.append({'type': 'reaction', 'agent': 'RiskAgent', 'message': f"Score: {score}/100"})
         
         logger.info("  💬 EngagementAgent: Quick reaction...")
+        self._push_update('thinking', 'EngagementAgent', 'Evaluating engagement potential and virality...')
         conversation_messages.append({'type': 'thinking', 'agent': 'EngagementAgent', 'message': 'Evaluating engagement...'})
         engagement_reaction = self.engagement_agent.quick_reaction(context)
         reactions['EngagementAgent'] = engagement_reaction
         self._save_agent_debate(post_input_id, engagement_reaction)
-        conversation_messages.append({'type': 'reaction', 'agent': 'EngagementAgent', 'message': f"Score: {engagement_reaction.get('score', 'N/A')}/100"})
+        score = engagement_reaction.get('score', 'N/A')
+        vote = engagement_reaction.get('vote', 'unknown')
+        reasoning = engagement_reaction.get('reasoning', '')
+        self._push_update('reaction', 'EngagementAgent', f"Score: {score}/100 - Vote: {vote}", {'reasoning': reasoning, 'score': score, 'vote': vote})
+        conversation_messages.append({'type': 'reaction', 'agent': 'EngagementAgent', 'message': f"Score: {score}/100"})
         
         return reactions
     
@@ -258,7 +317,6 @@ class DebateOrchestrator:
             agent = agent_objects[next_speaker]
             
             logger.info(f"  💬 Turn {turn+1}/{max_turns}: {next_speaker} jumping in...")
-            conversation_messages.append({'type': 'speaking', 'agent': next_speaker, 'message': 'Speaking...'})
             
             # Agent responds to the current conversation
             response = agent.jump_in_conversation(context, conversation_history)
@@ -272,13 +330,44 @@ class DebateOrchestrator:
             conversation_turns.append(conversation_turn)
             self._save_agent_debate(post_input_id, response)
             
-            # Add to conversation log for frontend
+            # Extract response fields - handle multiple possible field names
             vote = response.get('vote', 'unknown')
             passion = response.get('passion_level', 'calm')
+            
+            # Get argument/reasoning - check multiple possible field names
+            argument = (
+                response.get('argument') or 
+                response.get('response') or 
+                response.get('recommendation') or 
+                response.get('reasoning') or
+                'Analysis in progress...'
+            )
+            
+            reasoning = (
+                response.get('reasoning') or
+                response.get('response') or
+                response.get('explanation') or
+                ''
+            )
+            
+            # For jump_in_conversation, 'response' is the main content
+            if 'response' in response and not response.get('argument'):
+                argument = response['response']
+                
+            logger.info(f"    → Response extracted: {argument[:100]}...")
+            
+            # Push detailed update with actual argument
+            self._push_update('message', next_speaker, argument, {
+                'vote': vote,
+                'passion': passion,
+                'reasoning': reasoning,
+                'argument': argument
+            })
+            
             conversation_messages.append({
                 'type': 'message',
                 'agent': next_speaker,
-                'message': f"{passion.upper()} - Vote: {vote}",
+                'message': argument,
                 'vote': vote,
                 'passion': passion
             })

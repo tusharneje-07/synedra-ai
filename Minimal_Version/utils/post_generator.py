@@ -19,7 +19,7 @@ class PostGenerator:
         """Initialize post generator"""
         self.db = get_db()
         self.llm = get_llm_client()
-        self.num_variations = int(os.getenv('NUM_POST_VARIATIONS', '3'))
+        self.num_variations = 1  # Generate only ONE post
     
     def generate_posts(
         self,
@@ -75,9 +75,11 @@ class PostGenerator:
                         post_input_id=post_input_id,
                         variation_number=i,
                         post_title=post['title'],
-                        post_content=post['content'],
+                        post_content=post.get('description', post.get('content', '')),
                         hashtags=post['hashtags'],
                         image_prompt=post['image_prompt'],
+                        story_image_prompt=post.get('story_image_prompt', ''),
+                        reel_script=post.get('reel_script', ''),
                         final_score=cmo_decision.get('confidence_score', 0),
                         metadata=post.get('metadata', {})
                     )
@@ -113,36 +115,25 @@ class PostGenerator:
             Dict with title, content, hashtags, image_prompt
         """
         # Build generation prompt
-        system_prompt = """You are a professional social media content creator.
+        system_prompt = """You are a professional social media content creator and scriptwriter.
 
-Your job is to create engaging, on-brand social media posts that follow specific strategic guidelines.
+Your job is to create engaging, on-brand social media posts with complete creative assets.
 
 You MUST respond in valid JSON format with this exact structure:
 {
   "title": "catchy post title/headline",
-  "content": "complete post content/description",
+  "description": "complete post description WITHOUT hashtags",
   "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5",
-  "image_prompt": "detailed prompt for AI image generation",
-  "metadata": {
-    "variation_style": "description of this variation's approach",
-    "key_elements": ["element 1", "element 2"]
-  }
+  "image_prompt": "detailed technical prompt for AI image generation",
+  "story_image_prompt": "creative story-based image prompt with narrative context",
+  "reel_script": "complete script for a reel/video with scene descriptions and dialogue"
 }"""
         
         brand = context.get('brand', {})
         post = context.get('post', {})
         
-        # Different styles for different variations
-        variation_styles = {
-            1: "Most strategic and balanced - follow CMO instructions precisely",
-            2: "More creative and trend-focused - slightly more bold",
-            3: "Engagement-optimized - maximum interaction potential"
-        }
-        
-        variation_style = variation_styles.get(variation_number, variation_styles[1])
-        
         generation_prompt = f"""
-Create a social media post based on these strategic guidelines:
+Create a comprehensive social media post package based on these strategic guidelines:
 
 BRAND CONTEXT:
 - Brand: {brand.get('name')}
@@ -164,20 +155,44 @@ CMO STRATEGIC DIRECTION:
 - Elements to Avoid: {', '.join(instructions.get('elements_to_avoid', []))}
 - Format: {instructions.get('format_recommendation', 'standard post')}
 
-VARIATION STYLE #{variation_number}:
-{variation_style}
+Create a complete social media content package with:
 
-Create a complete social media post with:
 1. TITLE: Catchy, attention-grabbing headline (50-80 characters)
-2. CONTENT: Full post content (200-300 words for {post.get('platform')})
+
+2. DESCRIPTION: Full post content WITHOUT hashtags (200-300 words for {post.get('platform')})
    - Start with a hook
    - Include the key message naturally
    - Add value/information
    - End with clear CTA
-3. HASHTAGS: 5-8 relevant, trending hashtags (space-separated with #)
-4. IMAGE_PROMPT: Detailed AI image generation prompt (describe the scene, mood, style, colors)
+   - DO NOT include any hashtags in the description
 
-Make it engaging, authentic, and aligned with the brand voice!
+3. HASHTAGS: 5-10 relevant, trending hashtags (space-separated with #)
+
+4. IMAGE_PROMPT: Technical AI image generation prompt
+   - Describe the visual composition
+   - Specify style, colors, lighting
+   - Include technical details (camera angle, resolution style, mood)
+   - Example: "Professional product photography, soft natural lighting, minimalist white background, sharp focus on center object, f/2.8 depth of field, modern aesthetic"
+
+5. STORY_IMAGE_PROMPT: Story-based narrative image prompt
+   - Create a compelling visual story or scene
+   - Describe characters, emotions, and narrative context
+   - Make it emotionally engaging and relatable
+   - Example: "A young entrepreneur celebrates their first sale, joy and disbelief on their face, laptop glowing in a cozy home office at sunset, dreams becoming reality, inspirational moment captured"
+
+6. REEL_SCRIPT: Complete video/reel script (30-60 seconds)
+   - Scene-by-scene breakdown
+   - Include visuals, dialogue/voiceover, and actions
+   - Add timing suggestions (0:00-0:05, 0:05-0:10, etc.)
+   - Include transitions and key moments
+   - Make it engaging and shareable
+   - Example format:
+     [0:00-0:05] HOOK: Close-up of product, dramatic reveal
+     [0:05-0:15] PROBLEM: Show relatable struggle
+     [0:15-0:25] SOLUTION: Demonstrate product benefit
+     [0:25-0:30] CTA: Call to action with energy
+
+Make everything engaging, authentic, and perfectly aligned with the brand voice!
 """
         
         try:
@@ -210,6 +225,8 @@ Make it engaging, authentic, and aligned with the brand voice!
         post_content: str,
         hashtags: str,
         image_prompt: str,
+        story_image_prompt: str = '',
+        reel_script: str = '',
         final_score: float = None,
         metadata: Dict[str, Any] = None
     ) -> int:
@@ -221,6 +238,8 @@ Make it engaging, authentic, and aligned with the brand voice!
             'post_content': post_content,
             'hashtags': hashtags,
             'image_prompt': image_prompt,
+            'story_image_prompt': story_image_prompt,
+            'reel_script': reel_script,
             'final_score': final_score,
             'metadata': metadata or {}
         }

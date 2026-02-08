@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 import logging
 from typing import Dict, List, Any
+from datetime import datetime
 
 # Import database
 from database import get_db
@@ -22,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+
+# In-memory storage for live debate progress
+# Format: {post_input_id: {'messages': [...], 'status': 'running/complete', 'last_update': timestamp}}
+live_debate_updates = {}
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -57,6 +62,11 @@ def debate(post_id):
 def results(post_id):
     """Results page - Display generated posts"""
     return render_template('results.html', post_id=post_id)
+
+@app.route('/saved-posts')
+def saved_posts():
+    """Saved posts page - View all saved posts"""
+    return render_template('saved-posts.html')
 
 @app.route('/settings')
 def settings():
@@ -285,6 +295,34 @@ def get_brand_posts(brand_id):
 # API ROUTES - Debate Process
 # ========================================
 
+@app.route('/api/debates/<int:post_input_id>/live-progress', methods=['GET'])
+def get_live_debate_progress(post_input_id):
+    """
+    Get live debate progress for real-time updates
+    """
+    try:
+        if post_input_id not in live_debate_updates:
+            return jsonify({
+                'success': True,
+                'messages': [],
+                'status': 'not_started'
+            })
+        
+        progress = live_debate_updates[post_input_id]
+        return jsonify({
+            'success': True,
+            'messages': progress.get('messages', []),
+            'status': progress.get('status', 'running'),
+            'last_update': progress.get('last_update')
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting live debate progress: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/debates/current-api-key', methods=['GET'])
 def get_current_api_key():
     """
@@ -347,9 +385,24 @@ def start_debate():
                 'error': 'Brand not found'
             }), 404
         
+        # Initialize live debate updates for this post
+        if post_input_id not in live_debate_updates:
+            live_debate_updates[post_input_id] = {
+                'messages': [],
+                'status': 'running'
+            }
+        
+        # Define callback to push updates to frontend
+        def push_live_update(update):
+            live_debate_updates[post_input_id]['messages'].append(update)
+        
         # Run debate process
         logger.info(f"Starting debate for post_input_id: {post_input_id}")
         orchestrator = DebateOrchestrator()
+        
+        # CRITICAL: Set the callback BEFORE running debate
+        orchestrator.set_live_updates_callback(push_live_update)
+        
         debate_results = orchestrator.run_debate(post_input_id, brand, post_input)
         
         if not debate_results.get('success'):
@@ -382,6 +435,11 @@ def start_debate():
         api_key_name = debate_results.get('api_key_name', 'Unknown')
         conversation_log = debate_results.get('conversation_log', [])
         logger.info(f"📤 Returning to frontend - API Key: {api_key_name}, Conversation Messages: {len(conversation_log)}")
+        
+        # Mark debate as complete
+        if post_input_id in live_debate_updates:
+            live_debate_updates[post_input_id]['status'] = 'complete'
+            live_debate_updates[post_input_id]['last_update'] = datetime.now().isoformat()
         
         return jsonify({
             'success': True,
@@ -444,6 +502,70 @@ def get_generated_posts(post_input_id):
         })
     except Exception as e:
         logger.error(f"Error fetching generated posts for {post_input_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/save-post/<int:post_id>', methods=['POST'])
+def save_post(post_id):
+    """Save a post with all its context and debate data"""
+    try:
+        # Mark post as saved in database
+        result = db.save_post(post_id)
+        
+        if result:
+            return jsonify({
+                'success': True,
+                'message': 'Post saved successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Post not found or already saved'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error saving post {post_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/saved-posts', methods=['GET'])
+def get_saved_posts():
+    """Get all saved posts"""
+    try:
+        posts = db.get_saved_posts()
+        return jsonify({
+            'success': True,
+            'posts': posts,
+            'count': len(posts)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching saved posts: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/saved-post/<int:post_id>', methods=['GET'])
+def get_saved_post_detail(post_id):
+    """Get detailed view of a saved post including all debate context"""
+    try:
+        post_detail = db.get_saved_post_detail(post_id)
+        
+        if post_detail:
+            return jsonify({
+                'success': True,
+                'post': post_detail
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Saved post not found'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error fetching saved post detail {post_id}: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

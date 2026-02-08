@@ -94,6 +94,8 @@ class Database:
                 post_content TEXT NOT NULL,
                 hashtags TEXT NOT NULL,
                 image_prompt TEXT NOT NULL,
+                story_image_prompt TEXT,
+                reel_script TEXT,
                 final_score REAL,
                 metadata TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,6 +103,22 @@ class Database:
             )
         ''')
         
+        # Add new columns if they don't exist (migration)
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN story_image_prompt TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN reel_script TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN saved_at TIMESTAMP')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+            
         conn.commit()
         conn.close()
     
@@ -311,8 +329,9 @@ class Database:
         cursor.execute('''
             INSERT INTO generated_posts (
                 post_input_id, variation_number, post_title, post_content,
-                hashtags, image_prompt, final_score, metadata
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                hashtags, image_prompt, story_image_prompt, reel_script,
+                final_score, metadata
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             post_data['post_input_id'],
             post_data['variation_number'],
@@ -320,6 +339,8 @@ class Database:
             post_data['post_content'],
             post_data['hashtags'],
             post_data['image_prompt'],
+            post_data.get('story_image_prompt', ''),
+            post_data.get('reel_script', ''),
             post_data.get('final_score'),
             json.dumps(post_data.get('metadata', {}))
         ))
@@ -349,6 +370,97 @@ class Database:
             posts.append(post)
         
         return posts
+    
+    def save_post(self, post_id: int) -> bool:
+        """Mark a post as saved by adding timestamp to saved_at"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE generated_posts 
+            SET saved_at = CURRENT_TIMESTAMP 
+            WHERE id = ? AND saved_at IS NULL
+        ''', (post_id,))
+        
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return success
+    
+    def get_saved_posts(self) -> List[Dict]:
+        """Get all saved posts"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                gp.*,
+                pi.post_topic,
+                pi.target_platform,
+                pi.content_type,
+                b.brand_name
+            FROM generated_posts gp
+            INNER JOIN post_inputs pi ON gp.post_input_id = pi.id
+            INNER JOIN brands b ON pi.brand_id = b.id
+            WHERE gp.saved_at IS NOT NULL
+            ORDER BY gp.saved_at DESC
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+        
+        posts = []
+        for row in rows:
+            post = dict(row)
+            post['metadata'] = json.loads(post['metadata']) if post['metadata'] else {}
+            posts.append(post)
+        
+        return posts
+    
+    def get_saved_post_detail(self, post_id: int) -> Optional[Dict]:
+        """Get detailed view of a saved post including all debate context"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Get post details with post input and brand info
+        cursor.execute('''
+            SELECT 
+                gp.*,
+                pi.post_topic,
+                pi.post_objective,
+                pi.target_platform,
+                pi.content_type,
+                pi.key_message,
+                pi.call_to_action,
+                pi.special_requirements,
+                b.brand_name,
+                b.brand_tone,
+                b.brand_description
+            FROM generated_posts gp
+            INNER JOIN post_inputs pi ON gp.post_input_id = pi.id
+            INNER JOIN brands b ON pi.brand_id = b.id
+            WHERE gp.id = ? AND gp.saved_at IS NOT NULL
+        ''', (post_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+        
+        post_detail = dict(row)
+        post_detail['metadata'] = json.loads(post_detail['metadata']) if post_detail['metadata'] else {}
+        
+        # Get all debate data for this post
+        cursor.execute('''
+            SELECT * FROM debates
+            WHERE post_input_id = ?
+            ORDER BY debate_round ASC, created_at ASC
+        ''', (post_detail['post_input_id'],))
+        
+        debate_rows = cursor.fetchall()
+        post_detail['debates'] = [dict(debate) for debate in debate_rows]
+        
+        conn.close()
+        return post_detail
     
     def delete_post_and_related(self, post_input_id: int) -> bool:
         """Delete a post input and all related data"""
