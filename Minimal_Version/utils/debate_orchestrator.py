@@ -95,8 +95,10 @@ class DebateOrchestrator:
                 'message': 'Please ensure at least one working API key is configured in Settings.'
             }
         
-        # Build context for all agents
-        context = self._build_context(brand_data, post_data)
+        # Build context for all agents (including intervention if present)
+        human_intervention = post_data.get('human_intervention')
+        tagged_agents = post_data.get('tagged_agents', [])
+        context = self._build_context(brand_data, post_data, human_intervention, tagged_agents)
         
         # Track conversation for frontend display
         conversation_messages = []
@@ -207,10 +209,23 @@ class DebateOrchestrator:
         """Phase 1: Quick initial gut reactions from all agents"""
         reactions = {}
         
+        # Add intervention context to each agent if present
+        intervention_context = context.get('human_intervention')
+        if intervention_context:
+            logger.info(f"Human intervention detected: {intervention_context.get('message')[:100]}...")
+            conversation_messages.append({
+                'type': 'intervention',
+                'agent': 'HUMAN',
+                'message': intervention_context.get('message'),
+                'tagged_agents': intervention_context.get('tagged_agents', [])
+            })
+        
         logger.info("  📊 TrendAgent: Quick reaction...")
         self._push_update('thinking', 'TrendAgent', 'Analyzing current trends and market data...')
         conversation_messages.append({'type': 'thinking', 'agent': 'TrendAgent', 'message': 'Analyzing trends...'})
-        trend_reaction = self.trend_agent.quick_reaction(context)
+        # Add intervention prompt if applicable
+        trend_context = self._add_intervention_to_context(context, 'TrendAgent')
+        trend_reaction = self.trend_agent.quick_reaction(trend_context)
         reactions['TrendAgent'] = trend_reaction
         self._save_agent_debate(post_input_id, trend_reaction)
         score = trend_reaction.get('score', 'N/A')
@@ -222,7 +237,8 @@ class DebateOrchestrator:
         logger.info("  🎨 BrandAgent: Quick reaction...")
         self._push_update('thinking', 'BrandAgent', 'Checking brand alignment and voice consistency...')
         conversation_messages.append({'type': 'thinking', 'agent': 'BrandAgent', 'message': 'Checking brand alignment...'})
-        brand_reaction = self.brand_agent.quick_reaction(context)
+        brand_context = self._add_intervention_to_context(context, 'BrandAgent')
+        brand_reaction = self.brand_agent.quick_reaction(brand_context)
         reactions['BrandAgent'] = brand_reaction
         self._save_agent_debate(post_input_id, brand_reaction)
         score = brand_reaction.get('score', 'N/A')
@@ -234,7 +250,8 @@ class DebateOrchestrator:
         logger.info("  ⚖️ ComplianceAgent: Quick reaction...")
         self._push_update('thinking', 'ComplianceAgent', 'Verifying compliance and regulatory requirements...')
         conversation_messages.append({'type': 'thinking', 'agent': 'ComplianceAgent', 'message': 'Verifying compliance...'})
-        compliance_reaction = self.compliance_agent.quick_reaction(context)
+        compliance_context = self._add_intervention_to_context(context, 'ComplianceAgent')
+        compliance_reaction = self.compliance_agent.quick_reaction(compliance_context)
         reactions['ComplianceAgent'] = compliance_reaction
         self._save_agent_debate(post_input_id, compliance_reaction)
         score = compliance_reaction.get('score', 'N/A')
@@ -246,7 +263,8 @@ class DebateOrchestrator:
         logger.info("  🛡️ RiskAgent: Quick reaction...")
         self._push_update('thinking', 'RiskAgent', 'Assessing potential risks and vulnerabilities...')
         conversation_messages.append({'type': 'thinking', 'agent': 'RiskAgent', 'message': 'Assessing risks...'})
-        risk_reaction = self.risk_agent.quick_reaction(context)
+        risk_context = self._add_intervention_to_context(context, 'RiskAgent')
+        risk_reaction = self.risk_agent.quick_reaction(risk_context)
         reactions['RiskAgent'] = risk_reaction
         self._save_agent_debate(post_input_id, risk_reaction)
         score = risk_reaction.get('score', 'N/A')
@@ -258,7 +276,8 @@ class DebateOrchestrator:
         logger.info("  💬 EngagementAgent: Quick reaction...")
         self._push_update('thinking', 'EngagementAgent', 'Evaluating engagement potential and virality...')
         conversation_messages.append({'type': 'thinking', 'agent': 'EngagementAgent', 'message': 'Evaluating engagement...'})
-        engagement_reaction = self.engagement_agent.quick_reaction(context)
+        engagement_context = self._add_intervention_to_context(context, 'EngagementAgent')
+        engagement_reaction = self.engagement_agent.quick_reaction(engagement_context)
         reactions['EngagementAgent'] = engagement_reaction
         self._save_agent_debate(post_input_id, engagement_reaction)
         score = engagement_reaction.get('score', 'N/A')
@@ -268,6 +287,22 @@ class DebateOrchestrator:
         conversation_messages.append({'type': 'reaction', 'agent': 'EngagementAgent', 'message': f"Score: {score}/100"})
         
         return reactions
+    
+    def _add_intervention_to_context(self, context: Dict, agent_name: str) -> Dict:
+        """Add intervention prompt to context if present and relevant to agent"""
+        if 'human_intervention' not in context:
+            return context
+        
+        # Create a copy of context with intervention prompt
+        new_context = context.copy()
+        intervention_prompt = self._build_agent_prompt_with_intervention(context, agent_name)
+        
+        # Add intervention prompt to post requirements
+        if intervention_prompt:
+            current_requirements = new_context['post'].get('requirements', '')
+            new_context['post']['requirements'] = current_requirements + '\n\n' + intervention_prompt
+        
+        return new_context
     
     def _run_dynamic_conversation(self, context: Dict, initial_reactions: Dict, post_input_id: int, conversation_messages: list, max_turns: int = 20, min_turns: int = 5) -> Dict[str, Any]:
         """
@@ -594,10 +629,12 @@ class DebateOrchestrator:
     def _build_context(
         self,
         brand_data: Dict[str, Any],
-        post_data: Dict[str, Any]
+        post_data: Dict[str, Any],
+        human_intervention: str = None,
+        tagged_agents: List[str] = None
     ) -> Dict[str, Any]:
-        """Build comprehensive context for agents"""
-        return {
+        """Build comprehensive context for agents with optional human intervention"""
+        context = {
             'brand': {
                 'name': brand_data.get('brand_name'),
                 'tone': brand_data.get('brand_tone'),
@@ -619,6 +656,99 @@ class DebateOrchestrator:
                 'requirements': post_data.get('special_requirements', ''),
             }
         }
+        
+        # Add human intervention if provided
+        if human_intervention:
+            context['human_intervention'] = {
+                'message': human_intervention,
+                'tagged_agents': tagged_agents or [],
+                'priority': 'high'
+            }
+        
+        return context
+    
+    def run_debate_with_intervention(
+        self,
+        post_input_id: int,
+        post_input: Dict[str, Any],
+        intervention_message: str,
+        tagged_agents: List[str]
+    ):
+        """
+        Run debate with human intervention incorporated
+        This is a wrapper that adds intervention context to the regular debate
+        """
+        logger.info(f"Running debate with human intervention for post_input_id: {post_input_id}")
+        logger.info(f"Intervention message: {intervention_message}")
+        logger.info(f"Tagged agents: {tagged_agents}")
+        
+        try:
+            # Get brand data
+            brand_id = post_input.get('brand_id')
+            if not brand_id:
+                logger.error("No brand_id found in post_input")
+                return
+            
+            brand_data = self.db.get_brand(brand_id)
+            if not brand_data:
+                logger.error(f"Brand not found for id: {brand_id}")
+                return
+            
+            # Add intervention context to post data
+            post_input['human_intervention'] = intervention_message
+            post_input['tagged_agents'] = tagged_agents
+            
+            logger.info("Starting debate with intervention context...")
+            # Run the regular debate which will now include intervention context
+            result = self.run_debate(post_input_id, brand_data, post_input)
+            logger.info(f"Debate completed with intervention. Success: {result.get('success', False)}")
+            return result
+        except Exception as e:
+            logger.error(f"Error in run_debate_with_intervention: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _build_agent_prompt_with_intervention(
+        self,
+        base_context: Dict[str, Any],
+        agent_name: str
+    ) -> str:
+        """Build agent prompt including human intervention if present"""
+        intervention = base_context.get('human_intervention')
+        
+        if not intervention:
+            return ""
+        
+        message = intervention.get('message', '')
+        tagged_agents = intervention.get('tagged_agents', [])
+        
+        # Check if this agent is tagged
+        is_tagged = agent_name in tagged_agents
+        
+        intervention_prompt = f"\n\n{'='*60}\n"
+        intervention_prompt += "HUMAN INTERVENTION - CRITICAL UPDATE\n"
+        intervention_prompt += f"{'='*60}\n\n"
+        intervention_prompt += f"A human stakeholder has provided important feedback:\n\n"
+        intervention_prompt += f'"{message}"\n\n'
+        
+        if is_tagged:
+            intervention_prompt += f"IMPORTANT: YOU ({agent_name}) HAVE BEEN SPECIFICALLY TAGGED IN THIS INTERVENTION.\n"
+            intervention_prompt += "You MUST address this feedback directly in your analysis.\n"
+            intervention_prompt += "Consider how this changes your perspective and recommendations.\n\n"
+        else:
+            intervention_prompt += f"This feedback has been shared with all agents.\n"
+            intervention_prompt += "Consider how it impacts your domain of expertise.\n\n"
+        
+        if tagged_agents:
+            intervention_prompt += f"Agents tagged: {', '.join(tagged_agents)}\n\n"
+        
+        intervention_prompt += f"{'='*60}\n"
+        
+        return intervention_prompt
     
     def _save_agent_debate(self, post_input_id: int, analysis: Dict[str, Any]) -> int:
         """

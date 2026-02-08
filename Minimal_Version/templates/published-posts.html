@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Published Posts - Multi-Agent Post Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/css/output.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-16 items-center">
+            <div class="mr-4 flex">
+                <a href="/" class="mr-6 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    <span class="hidden font-bold sm:inline-block">Multi-Agent Post Generator</span>
+                    <span class="font-bold sm:hidden">Post Gen</span>
+                </a>
+            </div>
+            <nav class="flex items-center space-x-4 lg:space-x-6 text-sm font-medium ml-auto">
+                <a href="/" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Brand Config
+                </a>
+                <a href="/create-post" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Create Post
+                </a>
+                <a href="/history" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    History
+                </a>
+                <a href="/saved-posts" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Saved Posts
+                </a>
+                <a href="/published-posts" class="transition-colors hover:text-foreground/80 text-foreground">
+                    Published Posts
+                </a>
+                <a href="/settings" class="transition-colors hover:text-foreground/80 text-foreground/60">
+                    Settings
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-6 lg:py-10">
+        <!-- Header -->
+        <div class="flex flex-col space-y-2 mb-8">
+            <h1 class="scroll-m-20 text-3xl font-extrabold tracking-tight lg:text-4xl">
+                Published Posts
+            </h1>
+            <p class="text-lg text-muted-foreground">
+                Track your published Bluesky posts with real-time analytics
+            </p>
+        </div>
+
+        <!-- Status Message -->
+        <div id="status-message" class="hidden mb-6"></div>
+
+        <!-- Posts Grid -->
+        <div id="published-posts-container" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+            <!-- Loading indicator -->
+            <div class="col-span-full flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+        </div>
+
+        <!-- No Posts Message -->
+        <div id="no-published-posts" class="hidden">
+            <div class="card p-12 text-center">
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">No Published Posts</h3>
+                <p class="text-sm text-muted-foreground mb-6">
+                    You haven't published any posts to Bluesky yet. Publish your saved posts to see them here with analytics.
+                </p>
+                <div class="flex gap-4 justify-center">
+                    <a href="/saved-posts" class="btn btn-primary h-10 px-6">
+                        View Saved Posts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Post Detail Modal -->
+    <div id="published-post-modal" class="hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div class="fixed left-[50%] top-[50%] max-h-[85vh] w-[95vw] max-w-5xl translate-x-[-50%] translate-y-[-50%] overflow-y-auto">
+            <div class="card p-6 lg:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-semibold tracking-tight" id="modal-title">
+                        Published Post Details
+                    </h3>
+                    <button onclick="closePublishedPostModal()" 
+                        class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="published-post-detail-content">
+                    <!-- Content loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/scripts.js"></script>
+    <script>
+        // Load published posts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPublishedPosts();
+        });
+
+        async function loadPublishedPosts() {
+            try {
+                const response = await fetch('/api/published-posts');
+                const data = await response.json();
+
+                const container = document.getElementById('published-posts-container');
+                const noPostsDiv = document.getElementById('no-published-posts');
+
+                if (data.success && data.posts && data.posts.length > 0) {
+                    container.innerHTML = data.posts.map(post => createPublishedPostCard(post)).join('');
+                    noPostsDiv.classList.add('hidden');
+                } else {
+                    container.innerHTML = '';
+                    noPostsDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading published posts:', error);
+                showStatusMessage('Failed to load published posts', 'error');
+            }
+        }
+
+        function createPublishedPostCard(post) {
+            const publishedDate = new Date(post.published_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            // Metrics is already an object from backend, no need to parse
+            const metrics = post.bluesky_metrics || null;
+            const likes = metrics?.likes || 0;
+            const reposts = metrics?.reposts || 0;
+            const replies = metrics?.replies || 0;
+
+            const contentPreview = post.post_content.substring(0, 150) + (post.post_content.length > 150 ? '...' : '');
+
+            return `
+                <div class="card overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="font-semibold text-lg line-clamp-2 flex-1">
+                                ${post.custom_name || post.post_title || 'Untitled Post'}
+                            </h3>
+                        </div>
+                        
+                        <p class="text-sm text-muted-foreground mb-4 line-clamp-3">
+                            ${contentPreview}
+                        </p>
+                        
+                        <div class="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                            <div class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                <span>${likes}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="17 1 21 5 17 9"></polyline>
+                                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                                    <polyline points="7 23 3 19 7 15"></polyline>
+                                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                                </svg>
+                                <span>${reposts}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span>${replies}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                            <span>${publishedDate}</span>
+                            <span class="px-2 py-1 rounded-md bg-green-500/10 text-green-400">
+                                Published
+                            </span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="viewPublishedPost(${post.id})" 
+                                class="btn btn-outline flex-1 h-9 text-sm">
+                                View Details
+                            </button>
+                            <button onclick="refreshMetrics(${post.id})" 
+                                class="btn btn-secondary h-9 px-3" title="Refresh Analytics">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                            </button>
+                            ${post.bluesky_uri ? `
+                                <a href="https://bsky.app/profile/${post.bluesky_uri.split('/').slice(2).join('/')}" 
+                                   target="_blank" 
+                                   class="btn btn-primary h-9 px-3" 
+                                   title="View on Bluesky">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                    </svg>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function viewPublishedPost(postId) {
+            try {
+                const response = await fetch(`/api/published-post/${postId}`);
+                const data = await response.json();
+
+                if (data.success && data.post) {
+                    displayPublishedPostDetail(data.post);
+                    document.getElementById('published-post-modal').classList.remove('hidden');
+                } else {
+                    showStatusMessage('Failed to load post details', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading published post detail:', error);
+                showStatusMessage('Failed to load post details', 'error');
+            }
+        }
+
+        function displayPublishedPostDetail(post) {
+            // Metrics is already an object from backend, no need to parse
+            const metrics = post.bluesky_metrics || null;
+            const publishedDate = new Date(post.published_at).toLocaleString();
+
+            const content = `
+                <div class="space-y-6">
+                    <!-- Post Info -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-semibold text-sm text-muted-foreground">Post Name</h4>
+                            ${post.bluesky_uri ? `
+                                <a href="https://bsky.app/profile/${post.bluesky_uri.split('/').slice(2).join('/')}" 
+                                   target="_blank" 
+                                   class="text-sm text-primary hover:underline">
+                                    View on Bluesky →
+                                </a>
+                            ` : ''}
+                        </div>
+                        <p class="text-lg font-medium">${post.custom_name || post.post_title || 'Untitled Post'}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-sm text-muted-foreground">Published</h4>
+                        <p>${publishedDate}</p>
+                    </div>
+
+                    <!-- Analytics -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-semibold text-sm text-muted-foreground">Analytics</h4>
+                            <button onclick="refreshMetrics(${post.id})" 
+                                class="text-xs text-primary hover:underline flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="card p-4 text-center">
+                                <div class="text-2xl font-bold text-primary">${metrics?.likes || 0}</div>
+                                <div class="text-xs text-muted-foreground mt-1">Likes</div>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-400">${metrics?.reposts || 0}</div>
+                                <div class="text-xs text-muted-foreground mt-1">Reposts</div>
+                            </div>
+                            <div class="card p-4 text-center">
+                                <div class="text-2xl font-bold text-green-400">${metrics?.replies || 0}</div>
+                                <div class="text-xs text-muted-foreground mt-1">Replies</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Replies Section -->
+                    ${metrics?.replies_data && metrics.replies_data.length > 0 ? `
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-sm text-muted-foreground">Recent Replies</h4>
+                            <div class="space-y-2 max-h-96 overflow-y-auto">
+                                ${metrics.replies_data.map(reply => `
+                                    <div class="card p-3 bg-muted/30">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex flex-col">
+                                                <span class="font-semibold text-sm">${reply.author}</span>
+                                                <span class="text-xs text-muted-foreground">@${reply.handle}</span>
+                                            </div>
+                                            <span class="text-xs text-muted-foreground">${new Date(reply.created_at).toLocaleString()}</span>
+                                        </div>
+                                        <p class="text-sm whitespace-pre-wrap">${reply.text}</p>
+                                        ${reply.like_count > 0 || reply.reply_count > 0 ? `
+                                            <div class="flex gap-3 mt-2 text-xs text-muted-foreground">
+                                                ${reply.like_count > 0 ? `<span>❤️ ${reply.like_count}</span>` : ''}
+                                                ${reply.reply_count > 0 ? `<span>💬 ${reply.reply_count}</span>` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : metrics?.replies > 0 ? `
+                        <div class="card p-4 text-center bg-muted/30">
+                            <p class="text-sm text-muted-foreground">
+                                This post has ${metrics.replies} ${metrics.replies === 1 ? 'reply' : 'replies'}. 
+                                <button onclick="refreshMetrics(${post.id})" class="text-primary hover:underline">
+                                    Refresh to load
+                                </button>
+                            </p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Post Content -->
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-sm text-muted-foreground">Post Content</h4>
+                        <div class="card p-4 bg-muted/50">
+                            <p class="whitespace-pre-wrap">${post.post_content}</p>
+                        </div>
+                    </div>
+
+                    ${post.hashtags ? `
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-muted-foreground">Hashtags</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${post.hashtags.split(' ').map(tag => `
+                                    <span class="px-2 py-1 rounded-md bg-primary/10 text-primary text-xs">
+                                        ${tag}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Brand Info -->
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-sm text-muted-foreground">Brand</h4>
+                        <p>${post.brand_name}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('published-post-detail-content').innerHTML = content;
+        }
+
+        function closePublishedPostModal() {
+            document.getElementById('published-post-modal').classList.add('hidden');
+        }
+
+        async function refreshMetrics(postId) {
+            try {
+                // Get Bluesky credentials from settings (you'll need to implement settings storage)
+                const handle = 'devibon.bsky.social'; // TODO: Get from settings
+                const app_password = 'jpvb-ybht-rawc-lzlm'; // TODO: Get from settings
+
+                const response = await fetch(`/api/refresh-bluesky-metrics/${postId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        handle: handle,
+                        app_password: app_password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatusMessage('Analytics refreshed successfully', 'success');
+                    // Reload posts to show updated metrics
+                    loadPublishedPosts();
+                    
+                    // If modal is open, reload detail view
+                    const modal = document.getElementById('published-post-modal');
+                    if (!modal.classList.contains('hidden')) {
+                        viewPublishedPost(postId);
+                    }
+                } else {
+                    showStatusMessage(data.message || 'Failed to refresh analytics', 'error');
+                }
+            } catch (error) {
+                console.error('Error refreshing metrics:', error);
+                showStatusMessage('Failed to refresh analytics', 'error');
+            }
+        }
+
+        function showStatusMessage(message, type = 'info') {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.className = `p-4 rounded-lg mb-6 ${
+                type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                type === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+            }`;
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

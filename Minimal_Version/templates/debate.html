@@ -91,6 +91,76 @@
             <!-- CMO decision will be populated here -->
         </div>
 
+        <!-- Human Intervention Section -->
+        <div class="card p-6 mb-8 border-2 border-primary/30">
+            <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h2 class="text-xl font-semibold tracking-tight">Human Intervention</h2>
+                <span class="text-sm text-muted-foreground ml-auto">Use @ to mention agents</span>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <textarea 
+                        id="intervention-input" 
+                        class="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                        placeholder="Type your feedback or instructions for the agents... Use @ to mention specific agents (e.g., @TrendAgent, @BrandAgent)"
+                    ></textarea>
+                    
+                    <!-- Agent Mention Suggestions -->
+                    <div id="mention-suggestions" class="hidden absolute z-10 mt-1 w-64 rounded-md border border-border bg-card shadow-lg">
+                        <div class="py-1" id="mention-list">
+                            <!-- Suggestions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tagged Agents Display -->
+                <div id="tagged-agents" class="hidden">
+                    <p class="text-sm text-muted-foreground mb-2">Tagged Agents:</p>
+                    <div id="tagged-agents-list" class="flex flex-wrap gap-2">
+                        <!-- Tagged agent badges will appear here -->
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button 
+                        id="send-intervention-btn" 
+                        class="btn btn-primary h-10 px-6 flex items-center gap-2"
+                        disabled
+                    >
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        <span>Send & Restart Debate</span>
+                    </button>
+                    <button 
+                        id="clear-intervention-btn" 
+                        class="btn btn-outline h-10 px-6"
+                    >
+                        Clear
+                    </button>
+                    <div class="ml-auto text-sm text-muted-foreground">
+                        <span id="char-count">0</span> / 1000 characters
+                    </div>
+                </div>
+                
+                <!-- Help Text -->
+                <div class="rounded-lg border border-border bg-muted/30 p-4">
+                    <p class="text-sm text-muted-foreground">
+                        <strong class="text-foreground">How to use:</strong><br>
+                        • Type your feedback or modification requests<br>
+                        • Tag specific agents using <code class="px-1 py-0.5 rounded bg-muted">@AgentName</code> to direct your message<br>
+                        • The debate will restart with agents considering your input<br>
+                        • Available agents: @TrendAgent, @BrandAgent, @ComplianceAgent, @RiskAgent, @EngagementAgent, @CMOAgent
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="flex gap-4 flex-wrap">
             <a href="/create-post" class="btn btn-outline h-10 px-6">
@@ -116,9 +186,20 @@
         const pathParts = window.location.pathname.split('/');
         const postInputId = pathParts[pathParts.length - 1];
         
+        // Agent names for mentions
+        const AGENT_NAMES = [
+            { name: 'TrendAgent', role: 'TrendPulse Strategist', icon: '' },
+            { name: 'BrandAgent', role: 'Brand Voice Guardian', icon: '' },
+            { name: 'ComplianceAgent', role: 'Legal & Ethics Advisor', icon: '' },
+            { name: 'RiskAgent', role: 'Risk Assessment Specialist', icon: '' },
+            { name: 'EngagementAgent', role: 'Engagement Optimizer', icon: '' },
+            { name: 'CMOAgent', role: 'Strategic Arbiter', icon: '' }
+        ];
+        
         document.addEventListener('DOMContentLoaded', function() {
             if (postInputId) {
                 loadDebateData(postInputId);
+                initializeInterventionInput();
             }
             
             // Retry debate functionality
@@ -157,6 +238,194 @@
                 });
             }
         });
+        
+        function initializeInterventionInput() {
+            const input = document.getElementById('intervention-input');
+            const sendBtn = document.getElementById('send-intervention-btn');
+            const clearBtn = document.getElementById('clear-intervention-btn');
+            const charCount = document.getElementById('char-count');
+            const suggestionsBox = document.getElementById('mention-suggestions');
+            const suggestionsList = document.getElementById('mention-list');
+            const taggedAgentsDiv = document.getElementById('tagged-agents');
+            const taggedAgentsList = document.getElementById('tagged-agents-list');
+            
+            let currentMentionStart = -1;
+            let taggedAgents = new Set();
+            
+            // Character count
+            input.addEventListener('input', function() {
+                const text = input.value;
+                const length = text.length;
+                charCount.textContent = length;
+                
+                // Enable/disable send button
+                sendBtn.disabled = length === 0 || length > 1000;
+                
+                // Check for @ mentions
+                const cursorPos = input.selectionStart;
+                const textBeforeCursor = text.substring(0, cursorPos);
+                const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+                
+                if (lastAtIndex !== -1) {
+                    const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+                    if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
+                        // Show suggestions
+                        showMentionSuggestions(textAfterAt, lastAtIndex);
+                    } else {
+                        hideMentionSuggestions();
+                    }
+                } else {
+                    hideMentionSuggestions();
+                }
+                
+                // Extract tagged agents
+                updateTaggedAgents(text);
+            });
+            
+            // Clear button
+            clearBtn.addEventListener('click', function() {
+                input.value = '';
+                charCount.textContent = '0';
+                sendBtn.disabled = true;
+                taggedAgents.clear();
+                taggedAgentsDiv.classList.add('hidden');
+                hideMentionSuggestions();
+            });
+            
+            // Send intervention
+            sendBtn.addEventListener('click', async function() {
+                const message = input.value.trim();
+                if (!message || !postInputId) return;
+                
+                if (confirm('This will restart the debate with your feedback. Continue?')) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg><span>Processing...</span>';
+                    
+                    try {
+                        const response = await fetch(`/api/human-intervention/${postInputId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                message: message,
+                                tagged_agents: Array.from(taggedAgents)
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showMessage('Intervention sent! Debate restarting...', 'success');
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showMessage(data.message || 'Failed to send intervention', 'error');
+                            sendBtn.disabled = false;
+                            sendBtn.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg><span>Send & Restart Debate</span>';
+                        }
+                    } catch (error) {
+                        console.error('Error sending intervention:', error);
+                        showMessage('Error sending intervention', 'error');
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg><span>Send & Restart Debate</span>';
+                    }
+                }
+            });
+            
+            // Enter key to send (Ctrl+Enter or Cmd+Enter)
+            input.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!sendBtn.disabled) {
+                        sendBtn.click();
+                    }
+                }
+            });
+            
+            function showMentionSuggestions(query, atIndex) {
+                const filtered = AGENT_NAMES.filter(agent => 
+                    agent.name.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                if (filtered.length === 0) {
+                    hideMentionSuggestions();
+                    return;
+                }
+                
+                currentMentionStart = atIndex;
+                
+                suggestionsList.innerHTML = filtered.map(agent => `
+                    <button 
+                        class="w-full text-left px-4 py-2 hover:bg-accent cursor-pointer"
+                        onclick="insertMention('${agent.name}', ${atIndex})"
+                    >
+                        <div>
+                            <div class="font-semibold text-sm">${agent.name}</div>
+                            <div class="text-xs text-muted-foreground">${agent.role}</div>
+                        </div>
+                    </button>
+                `).join('');
+                
+                suggestionsBox.classList.remove('hidden');
+            }
+            
+            function hideMentionSuggestions() {
+                suggestionsBox.classList.add('hidden');
+                currentMentionStart = -1;
+            }
+            
+            window.insertMention = function(agentName, atIndex) {
+                const text = input.value;
+                const beforeAt = text.substring(0, atIndex);
+                const afterCursor = text.substring(input.selectionStart);
+                
+                input.value = beforeAt + '@' + agentName + ' ' + afterCursor;
+                input.focus();
+                
+                const newCursorPos = beforeAt.length + agentName.length + 2;
+                input.setSelectionRange(newCursorPos, newCursorPos);
+                
+                hideMentionSuggestions();
+                updateTaggedAgents(input.value);
+                
+                // Trigger input event to update char count
+                input.dispatchEvent(new Event('input'));
+            };
+            
+            function updateTaggedAgents(text) {
+                const mentions = text.match(/@(\w+)/g) || [];
+                taggedAgents.clear();
+                
+                mentions.forEach(mention => {
+                    const agentName = mention.substring(1);
+                    if (AGENT_NAMES.some(a => a.name === agentName)) {
+                        taggedAgents.add(agentName);
+                    }
+                });
+                
+                if (taggedAgents.size > 0) {
+                    taggedAgentsList.innerHTML = Array.from(taggedAgents).map(agentName => {
+                        const agent = AGENT_NAMES.find(a => a.name === agentName);
+                        return `
+                            <span class="inline-flex items-center gap-1 rounded-full bg-primary/20 border border-primary/30 px-3 py-1 text-sm"
+                            </span>
+                        `;
+                    }).join('');
+                    taggedAgentsDiv.classList.remove('hidden');
+                } else {
+                    taggedAgentsDiv.classList.add('hidden');
+                }
+            }
+            
+            // Click outside to hide suggestions
+            document.addEventListener('click', function(e) {
+                if (!suggestionsBox.contains(e.target) && e.target !== input) {
+                    hideMentionSuggestions();
+                }
+            });
+        }
     </script>
 </body>
 </html>

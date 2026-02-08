@@ -1610,13 +1610,23 @@ async function viewSavedPostDetail(postId) {
                     </div>
                 ` : ''}
                 
-                <div class="flex items-center justify-between pt-4 border-t border-border">
+                <div class="flex items-center justify-between pt-4 border-t border-border gap-3">
                     <span class="text-sm text-muted-foreground">Score: ${post.final_score?.toFixed(0) || 'N/A'}%</span>
-                    <button onclick="copyToClipboard(null, ${JSON.stringify(post).replace(/"/g, '&quot;')})" 
-                        class="btn btn-secondary h-9 px-4 flex items-center gap-2">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        <span>Copy Content</span>
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="publishToBluesky(${post.id})" 
+                            class="btn btn-primary h-9 px-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span>Publish to Bluesky</span>
+                        </button>
+                        <button onclick="copyToClipboard(null, ${JSON.stringify(post).replace(/"/g, '&quot;')})" 
+                            class="btn btn-secondary h-9 px-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy Content</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1633,6 +1643,50 @@ function closeSavedPostModal() {
     const modal = document.getElementById('saved-post-modal');
     if (modal) {
         modal.classList.add('hidden');
+    }
+}
+
+// Publish to Bluesky
+async function publishToBluesky(postId) {
+    try {
+        // TODO: Get credentials from settings page
+        const handle = 'devibon.bsky.social';
+        const app_password = 'jpvb-ybht-rawc-lzlm';
+        
+        // Confirm publish
+        if (!confirm('Are you sure you want to publish this post to Bluesky?')) {
+            return;
+        }
+        
+        showMessage('Publishing to Bluesky...', 'info');
+        
+        const response = await fetch(`${API_BASE}/publish-to-bluesky/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                handle: handle,
+                app_password: app_password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage('Post published successfully to Bluesky!', 'success');
+            closeSavedPostModal();
+            
+            // Redirect to published posts after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/published-posts';
+            }, 2000);
+        } else {
+            showMessage(data.message || 'Failed to publish post', 'error');
+        }
+    } catch (error) {
+        console.error('Error publishing to Bluesky:', error);
+        showMessage('Error publishing to Bluesky', 'error');
     }
 }
 

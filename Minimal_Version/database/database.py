@@ -123,6 +123,28 @@ class Database:
             cursor.execute('ALTER TABLE generated_posts ADD COLUMN custom_name TEXT')
         except sqlite3.OperationalError:
             pass  # Column already exists
+        
+        # Add metadata column to post_inputs for storing interventions and other metadata
+        try:
+            cursor.execute('ALTER TABLE post_inputs ADD COLUMN metadata TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        # Add Bluesky publishing columns to generated_posts
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN published_at TIMESTAMP')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN bluesky_uri TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+        
+        try:
+            cursor.execute('ALTER TABLE generated_posts ADD COLUMN bluesky_metrics TEXT')
+        except sqlite3.OperationalError:
+            pass  # Column already exists
             
         conn.commit()
         conn.close()
@@ -563,6 +585,147 @@ class Database:
         conn.commit()
         conn.close()
         return True
+    
+    def store_human_intervention(self, post_input_id: int, message: str, tagged_agents: List[str]) -> bool:
+        """Store human intervention in post_inputs metadata for tracking"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Get current metadata
+        cursor.execute('SELECT metadata FROM post_inputs WHERE id = ?', (post_input_id,))
+        row = cursor.fetchone()
+        
+        if row:
+            metadata = json.loads(row[0]) if row[0] else {}
+            
+            # Add intervention to metadata
+            if 'interventions' not in metadata:
+                metadata['interventions'] = []
+            
+            metadata['interventions'].append({
+                'message': message,
+                'tagged_agents': tagged_agents,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            # Update metadata
+            cursor.execute(
+                'UPDATE post_inputs SET metadata = ? WHERE id = ?',
+                (json.dumps(metadata), post_input_id)
+            )
+            
+            conn.commit()
+            conn.close()
+            return True
+        
+        conn.close()
+        return False
+    
+    def publish_to_bluesky(self, post_id: int, bluesky_uri: str) -> bool:
+        """Mark a post as published to Bluesky"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE generated_posts 
+            SET published_at = CURRENT_TIMESTAMP,
+                bluesky_uri = ?
+            WHERE id = ?
+        ''', (bluesky_uri, post_id))
+        
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return success
+    
+    def update_bluesky_metrics(self, post_id: int, metrics: Dict) -> bool:
+        """Update Bluesky metrics for a published post"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE generated_posts 
+            SET bluesky_metrics = ?
+            WHERE id = ?
+        ''', (json.dumps(metrics), post_id))
+        
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return success
+    
+    def get_published_posts(self) -> List[Dict]:
+        """Get all published posts"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                gp.*,
+                pi.post_topic,
+                pi.target_platform,
+                pi.content_type,
+                b.brand_name
+            FROM generated_posts gp
+            LEFT JOIN post_inputs pi ON gp.post_input_id = pi.id
+            LEFT JOIN brands b ON pi.brand_id = b.id
+            WHERE gp.published_at IS NOT NULL
+            ORDER BY gp.published_at DESC
+        ''')
+        
+        columns = [desc[0] for desc in cursor.description]
+        posts = []
+        
+        for row in cursor.fetchall():
+            post = dict(zip(columns, row))
+            # Parse metrics if available
+            if post.get('bluesky_metrics'):
+                try:
+                    post['bluesky_metrics'] = json.loads(post['bluesky_metrics'])
+                except:
+                    post['bluesky_metrics'] = None
+            posts.append(post)
+        
+        conn.close()
+        return posts
+    
+    def get_published_post_detail(self, post_id: int) -> Optional[Dict]:
+        """Get detailed view of a published post"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                gp.*,
+                pi.post_topic,
+                pi.target_platform,
+                pi.content_type,
+                pi.post_objective,
+                b.brand_name,
+                b.brand_tone
+            FROM generated_posts gp
+            LEFT JOIN post_inputs pi ON gp.post_input_id = pi.id
+            LEFT JOIN brands b ON pi.brand_id = b.id
+            WHERE gp.id = ? AND gp.published_at IS NOT NULL
+        ''', (post_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return None
+        
+        columns = [desc[0] for desc in cursor.description]
+        post = dict(zip(columns, row))
+        
+        # Parse metrics if available
+        if post.get('bluesky_metrics'):
+            try:
+                post['bluesky_metrics'] = json.loads(post['bluesky_metrics'])
+            except:
+                post['bluesky_metrics'] = None
+        
+        conn.close()
+        return post
     
     def delete_post_and_related(self, post_input_id: int) -> bool:
         """Delete a post input and all related data"""

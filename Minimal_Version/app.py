@@ -68,10 +68,16 @@ def saved_posts():
     """Saved posts page - View all saved posts"""
     return render_template('saved-posts.html')
 
+@app.route('/published-posts')
+def published_posts():
+    """Published posts page - View all published Bluesky posts"""
+    return render_template('published-posts.html')
+
 @app.route('/history')
 def history():
     """History page - View all past generations"""
     return render_template('history.html')
+
 
 @app.route('/settings')
 def settings():
@@ -580,6 +586,164 @@ def get_saved_post_detail(post_id):
             'error': str(e)
         }), 500
 
+@app.route('/api/publish-to-bluesky/<int:post_id>', methods=['POST'])
+def publish_to_bluesky(post_id):
+    """Publish a saved post to Bluesky"""
+    try:
+        # Get Bluesky credentials from request
+        data = request.get_json() or {}
+        handle = data.get('handle')
+        app_password = data.get('app_password')
+        
+        if not handle or not app_password:
+            return jsonify({
+                'success': False,
+                'message': 'Bluesky credentials required'
+            }), 400
+        
+        # Get post data
+        post_detail = db.get_saved_post_detail(post_id)
+        if not post_detail:
+            return jsonify({
+                'success': False,
+                'message': 'Post not found'
+            }), 404
+        
+        # Check if already published
+        if post_detail.get('published_at'):
+            return jsonify({
+                'success': False,
+                'message': 'Post already published'
+            }), 400
+        
+        # Prepare content for Bluesky
+        content = post_detail['post_content']
+        if not content or not content.strip():
+            return jsonify({
+                'success': False,
+                'message': 'Post content is empty'
+            }), 400
+        
+        hashtags = post_detail['hashtags'].split() if post_detail.get('hashtags') else []
+        
+        logger.info(f"Publishing post {post_id} to Bluesky")
+        logger.info(f"Content length: {len(content)}")
+        logger.info(f"Hashtags: {hashtags}")
+        
+        # Publish to Bluesky
+        from utils.bluesky_client import post_to_bluesky
+        result = post_to_bluesky(
+            handle=handle,
+            app_password=app_password,
+            content=content,
+            hashtags=hashtags
+        )
+        
+        # Mark as published in database
+        bluesky_uri = result['uri']
+        db.publish_to_bluesky(post_id, bluesky_uri)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Post published successfully',
+            'bluesky_uri': bluesky_uri
+        })
+    except Exception as e:
+        logger.error(f"Error publishing to Bluesky: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/published-posts', methods=['GET'])
+def get_published_posts():
+    """Get all published posts"""
+    try:
+        posts = db.get_published_posts()
+        return jsonify({
+            'success': True,
+            'posts': posts,
+            'count': len(posts)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching published posts: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/published-post/<int:post_id>', methods=['GET'])
+def get_published_post_detail(post_id):
+    """Get detailed view of a published post"""
+    try:
+        post_detail = db.get_published_post_detail(post_id)
+        
+        if post_detail:
+            return jsonify({
+                'success': True,
+                'post': post_detail
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Published post not found'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error fetching published post detail {post_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/refresh-bluesky-metrics/<int:post_id>', methods=['POST'])
+def refresh_bluesky_metrics(post_id):
+    """Refresh Bluesky metrics for a published post"""
+    try:
+        # Get post data
+        post_detail = db.get_published_post_detail(post_id)
+        if not post_detail:
+            return jsonify({
+                'success': False,
+                'message': 'Published post not found'
+            }), 404
+        
+        bluesky_uri = post_detail.get('bluesky_uri')
+        if not bluesky_uri:
+            return jsonify({
+                'success': False,
+                'message': 'No Bluesky URI found'
+            }), 400
+        
+        # Get credentials from request
+        data = request.get_json() or {}
+        handle = data.get('handle')
+        app_password = data.get('app_password')
+        
+        if not handle or not app_password:
+            return jsonify({
+                'success': False,
+                'message': 'Bluesky credentials required'
+            }), 400
+        
+        # Fetch metrics from Bluesky
+        from utils.bluesky_client import create_client
+        client = create_client(handle, app_password)
+        metrics = client.get_metrics(bluesky_uri)
+        
+        # Update metrics in database
+        db.update_bluesky_metrics(post_id, metrics)
+        
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+    except Exception as e:
+        logger.error(f"Error refreshing Bluesky metrics: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/history', methods=['GET'])
 def get_history():
     """Get all post generation history"""
@@ -620,6 +784,66 @@ def get_history_detail(post_input_id):
             'error': str(e)
         }), 500
 
+@app.route('/api/human-intervention/<int:post_input_id>', methods=['POST'])
+def human_intervention(post_input_id):
+    """Handle human intervention and restart debate with user feedback"""
+    try:
+        # Get intervention message and tagged agents
+        data = request.get_json()
+        message = data.get('message', '').strip()
+        tagged_agents = data.get('tagged_agents', [])
+        
+        if not message:
+            return jsonify({
+                'success': False,
+                'message': 'Intervention message is required'
+            }), 400
+        
+        # Get the original post input data
+        post_input = db.get_post_input(post_input_id)
+        
+        if not post_input:
+            return jsonify({
+                'success': False,
+                'message': 'Post input not found'
+            }), 404
+        
+        # Store intervention in database (optional - for history tracking)
+        db.store_human_intervention(post_input_id, message, tagged_agents)
+        
+        # Clear previous debates and generated posts for this input
+        db.clear_post_results(post_input_id)
+        
+        # Append human intervention to post input context
+        post_input['human_intervention'] = {
+            'message': message,
+            'tagged_agents': tagged_agents
+        }
+        
+        # Trigger new debate with intervention context (async)
+        from utils.debate_orchestrator import DebateOrchestrator
+        debate_orchestrator = DebateOrchestrator()
+        
+        # Run debate asynchronously with human intervention
+        import threading
+        thread = threading.Thread(
+            target=debate_orchestrator.run_debate_with_intervention,
+            args=(post_input_id, post_input, message, tagged_agents)
+        )
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Human intervention processed. Debate restarting...',
+            'post_input_id': post_input_id
+        })
+    except Exception as e:
+        logger.error(f"Error processing human intervention for {post_input_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/retry-debate/<int:post_input_id>', methods=['POST'])
 def retry_debate(post_input_id):
     """Retry the debate for a post input"""
@@ -633,6 +857,21 @@ def retry_debate(post_input_id):
                 'message': 'Post input not found'
             }), 404
         
+        # Get brand data
+        brand_id = post_input.get('brand_id')
+        if not brand_id:
+            return jsonify({
+                'success': False,
+                'message': 'Brand ID not found in post input'
+            }), 404
+        
+        brand_data = db.get_brand(brand_id)
+        if not brand_data:
+            return jsonify({
+                'success': False,
+                'message': 'Brand not found'
+            }), 404
+        
         # Clear previous debates and generated posts for this input
         db.clear_post_results(post_input_id)
         
@@ -640,11 +879,11 @@ def retry_debate(post_input_id):
         from utils.debate_orchestrator import DebateOrchestrator
         debate_orchestrator = DebateOrchestrator()
         
-        # Run debate asynchronously
+        # Run debate asynchronously with proper arguments
         import threading
         thread = threading.Thread(
             target=debate_orchestrator.run_debate,
-            args=(post_input_id, post_input)
+            args=(post_input_id, brand_data, post_input)
         )
         thread.start()
         
