@@ -424,7 +424,7 @@ class Database:
         return success
     
     def get_saved_posts(self) -> List[Dict]:
-        """Get all saved posts"""
+        """Get all saved posts (excluding published posts)"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -439,6 +439,7 @@ class Database:
             INNER JOIN post_inputs pi ON gp.post_input_id = pi.id
             INNER JOIN brands b ON pi.brand_id = b.id
             WHERE gp.saved_at IS NOT NULL
+            AND gp.published_at IS NULL
             ORDER BY gp.saved_at DESC
         ''')
         rows = cursor.fetchall()

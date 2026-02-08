@@ -44,8 +44,13 @@ db = get_db()
 # ========================================
 
 @app.route('/')
-def index():
-    """Home page - Brand configuration"""
+def home():
+    """Landing page"""
+    return render_template('home.html')
+
+@app.route('/brand-config')
+def brand_config():
+    """Brand configuration page"""
     return render_template('index.html')
 
 @app.route('/create-post')

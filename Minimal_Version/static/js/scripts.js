@@ -1677,10 +1677,15 @@ async function publishToBluesky(postId) {
             showMessage('Post published successfully to Bluesky!', 'success');
             closeSavedPostModal();
             
-            // Redirect to published posts after 2 seconds
+            // Reload saved posts to remove published post
+            if (typeof loadSavedPosts === 'function') {
+                loadSavedPosts();
+            }
+            
+            // Redirect to published posts after 1.5 seconds
             setTimeout(() => {
                 window.location.href = '/published-posts';
-            }, 2000);
+            }, 1500);
         } else {
             showMessage(data.message || 'Failed to publish post', 'error');
         }
